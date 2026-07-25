@@ -4,9 +4,6 @@
 **Tiempo:** 6–8 horas (ritmo workshop) o a tu ritmo  
 **Stack:** Agnóstico de lenguaje (ejemplos en Java/Spring Boot y TypeScript/React)
 
-**Autor:** Thor Henning Hetland (Totto) · Ægis / eXOReaction  
-**Ponente (versión ES):** Jose Diaz Diaz — mensajero y partner  
-**Lugar:** Santiago de los Caballeros, República Dominicana · 2026
 
 > **Idioma:** Traducción de [`WORKSHOP-DAY.md`](./WORKSHOP-DAY.md) — **Ejercicios 1–3** (los esenciales para la charla / día 1).  
 > Ejercicios 4–6 → ver el original en inglés: [`WORKSHOP-DAY.md`](./WORKSHOP-DAY.md#exercise-4-trust-but-verify--the-template-pattern).  

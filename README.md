@@ -153,3 +153,19 @@ sdd-joedayz-workshop/
 ## ¿Sin codebase? Usa el Idea Bank
 
 **[IDEA-BANK.es.md](./IDEA-BANK.es.md)** — 12 proyectos prediseñados para participantes que no trajeron su propio codebase. Cada uno tiene un brief de escenario, un repo para clonar, un CLAUDE.md semilla y una lista de skills de dominio por descubrir. Proyectos: QuantumTrade, AstroNav, EcoGrid, NeuralProxy, MediSched, ChessEngine, ThreatHunter, RulesForge, FleetMind, BioSeq, LegalVault, GameServer.
+
+
+## Guía del día de workshop
+
+**[WORKSHOP-DAY.es.md](./WORKSHOP-DAY.es.md)** — El tutorial hands-on del día de workshop. Cubre los 6 ejercicios en secuencia con prompts exactos, ejemplos de output y templates YAML. Ábrelo en tu laptop y síguelo.
+
+| Ejercicio | Tema |
+|-----------|------|
+| Ex 1 | Evaluación baseline de tu codebase |
+| Ex 2 | Escribe tu CLAUDE.md |
+| Ex 3 | Crea tus primeras 3 skills (arquitectura, dominio, QA) |
+| Ex 4 | Patrón template — Sonnet diseña, Haiku ejecuta |
+| Ex 5 | Expansión de la suite de tests |
+| Ex 6 | Skill de QA + aprendizaje continuo |
+
+---
