@@ -8,7 +8,9 @@ Instala 19 skills de metodología de nivel producción en tu entorno de Claude C
 
 ## Qué se instala
 
-**19 skills → `~/.claude/skills/common/`** (activas en cada sesión de Claude, en cada proyecto)
+**19 skills → `~/.claude/skills/<nombre>/SKILL.md`** (activas en cada sesión de Claude, en cada proyecto)
+
+Claude Code solo descubre skills en formato directorio (`SKILL.md` con frontmatter). Los `.yaml` del paquete se **convierten** a ese layout al instalar; no se copian planos a `common/`.
 
 | Categoría | Skills | Pilares |
 |-----------|--------|---------|
@@ -32,17 +34,19 @@ Instala 19 skills de metodología de nivel producción en tu entorno de Claude C
 
 ## Instalación
 
-Abre Claude Code **en el directorio que contiene este paquete boost**, y pega estos dos prompts — en orden.
+Abre Claude Code **en el directorio que contiene este paquete**, y pega estos dos prompts — en orden.
 
 ### Paso A — Boost Skills
 
 ```
-"Lee el README del boost-package y todas las skills de este directorio.
+"Lee el README de este paquete y todas las skills de este directorio.
 Instálalas e intégralas de forma global en mi setup de Claude Code.
 Verifica que cada skill cargue correctamente y confirma cuando termines."
 ```
 
-Claude hará: leer el README → copiar todas las skills a `~/.claude/skills/common/` → instalar archivos de memoria → crear templates → reportar con un conteo. No hace falta script de shell.
+Claude hará: leer el README → convertir cada skill a `~/.claude/skills/<nombre>/SKILL.md` → instalar archivos de memoria (`~/.sdd/memory/`) → copiar templates (`~/.claude/sdd-templates/`) → reportar con un conteo. No hace falta script de shell.
+
+> **Nota:** `~/.claude/skills/common/` es una convención antigua. El runtime actual no carga skills desde ahí.
 
 ### Paso B — KCP desde GitHub (versiones más recientes)
 
@@ -62,11 +66,11 @@ Claude hará: encontrar los repos → bajar los últimos releases → instalar k
 Si aún no puedes usar Claude Code:
 
 ```bash
-cd /path/to/sdd-workshop-boost
+cd /path/to/sdd-joedayz-workshop
 ./install.sh
 ```
 
-Esto instala solo las skills del boost — kcp hay que instalarlo aparte desde GitHub.
+Esto convierte e instala las skills del joedayz workshop en `~/.claude/skills/<nombre>/SKILL.md` — kcp hay que instalarlo aparte desde GitHub.
 
 ---
 
@@ -78,7 +82,7 @@ Abre tu proyecto en Claude Code. Pregunta:
 "What SDD skills do I have?"
 ```
 
-Claude leerá `sdd-context.yaml` y te guiará por la metodología completa.
+Claude leerá `sdd-context` y te guiará por la metodología completa.
 
 O salta directo al trabajo:
 
@@ -123,11 +127,29 @@ Las skills de metodología (esta distribución) cubren el CÓMO del SDD.
 Tus skills de dominio cubren los patrones específicos de TU proyecto.
 
 Empieza aquí:
-1. Copia `templates/skill-template.yaml` a `.claude/skills/[nombre-de-tu-skill].yaml`
+1. Crea `.claude/skills/[nombre-de-tu-skill]/SKILL.md` (usa `templates/skill-template.yaml` como base del contenido)
 2. Responde: “¿Qué le sigo explicando a Claude sobre mi codebase?”
 3. Escríbelo una vez, en la skill. No lo vuelvas a explicar.
 4. Prueba: abre una sesión nueva de Claude, pídele que haga la cosa. ¿Siguió tu skill?
 
-**Cuándo crear un navigator:** Cuando tengas 10+ skills de dominio, lee `skill-navigator-pattern.yaml`.
+**Cuándo crear un navigator:** Cuando tengas 10+ skills de dominio, lee `skill-navigator-pattern`.
+
+
+## Contenido de la distribución
+
+```
+sdd-joedayz-workshop/
+  install.sh              # Instalador (global o por codebase)
+  README.md            # Esta traducción (español)
+  skills/                 # 27 skills + sdd-navigator
+  memory/                 # MEMORY.md de routing + 4 topic files
+  templates/              # CLAUDE.md, LEARNINGS.md, skill-template.yaml
+  tutorial/               # Tutorial self-paced de 6 pasos (~2 horas)
+  facilitator/            # Demo script, timing sheets, recuperación de fallos
+```
 
 ---
+
+## ¿Sin codebase? Usa el Idea Bank
+
+**[IDEA-BANK.es.md](./IDEA-BANK.es.md)** — 12 proyectos prediseñados para participantes que no trajeron su propio codebase. Cada uno tiene un brief de escenario, un repo para clonar, un CLAUDE.md semilla y una lista de skills de dominio por descubrir. Proyectos: QuantumTrade, AstroNav, EcoGrid, NeuralProxy, MediSched, ChessEngine, ThreatHunter, RulesForge, FleetMind, BioSeq, LegalVault, GameServer.

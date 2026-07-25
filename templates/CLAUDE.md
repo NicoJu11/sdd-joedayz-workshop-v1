@@ -69,7 +69,7 @@
 
 Domain skills for this project: `.claude/skills/`
 
-Methodology skills (active globally): `~/.claude/skills/common/`
+Methodology skills (active globally): `~/.claude/skills/<name>/SKILL.md`
 - SDD methodology: `sdd-context` (entry point)
 - CLAUDE.md guidelines: `claude-md-guidelines`
 - Skill routing: `skill-routing-decisions`

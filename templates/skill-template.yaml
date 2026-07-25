@@ -8,8 +8,9 @@
 # 5. Start with status: draft. Promote to beta when it works. Production-ready after 2 weeks of use.
 #
 # Location guide:
-#   This file: .claude/skills/  (project-specific)
-#   Universal patterns: ~/.claude/skills/common/  (after 2+ projects need it)
+#   Project:  .claude/skills/<name>/SKILL.md
+#   Global:   ~/.claude/skills/<name>/SKILL.md  (after 2+ projects need it)
+# Claude Code only loads directory-format skills (SKILL.md), not flat .yaml files.
 
 ---
 name: [skill-name-kebab-case]
