@@ -1,0 +1,81 @@
+name: orchestration-chain-pattern
+description: |
+  Pattern for understanding and executing orchestration chains.
+  ACTION skill — teaches how to interpret chain YAML and execute steps reliably.
+  Invoked via `/chain <name>` slash command.
+metadata:
+  type: ACTION
+  category: orchestration
+  version: "1.1"
+  updated: "2026-04-16"
+
+instructions: |
+  ## Orchestration Chain Execution Pattern
+
+  **Invoke:** `/chain <name>` reads `~/.claude/commands/chains/<name>.yaml`
+
+  **Available chains:**
+  - `pr-review-cycle` — verify tests -> create PR -> adversarial review -> address feedback -> push
+  - `overnight-batch` — setup retry -> synthesis search -> implement -> cleanup (uses Ralph Wiggum loop)
+
+  **Chain YAML fields:**
+  - `steps[].id` — unique step identifier
+  - `steps[].action` — what to do (natural language instruction)
+  - `steps[].depends_on` — list of step IDs that must complete first
+  - `steps[].success_condition` — how to verify the step worked
+  - `steps[].on_failure` — `abort` / `retry` / `continue`
+  - `steps[].confirm` — if `true`, pause for user approval before executing
+
+  When executing a chain:
+
+  1. **Parse dependencies as a DAG** — steps with no `depends_on` run first.
+     Steps with dependencies run only after all their dependencies complete successfully.
+
+  2. **Failure handling**:
+     - `abort`: Stop the chain immediately. Report which step failed and why.
+     - `retry`: Re-attempt the step (up to `max_retries` times). Wait for natural completion before retrying.
+     - `continue`: Log the failure, proceed to the next step. Flag in final summary.
+
+  3. **Success conditions** — evaluate against actual tool output:
+     - String match: check if the phrase appears in output
+     - Exit code: check `echo $?` after command
+     - File existence: `test -f <path>`
+     - HTTP check: `curl -s -o /dev/null -w "%{http_code}"` returning 200
+
+  4. **ADO adaptation** — when the target repo uses Azure DevOps (not GitHub), adapt the
+     `create-pr` step to use:
+     ```bash
+     az repos pr create --org https://dev.azure.com/<org> --project <project> --repository <repo> --source-branch <branch> --target-branch dev
+     ```
+     instead of `gh pr create`. The rest of the chain (tests, review, feedback) works identically.
+
+  5. **Confirmation steps** — for `confirm: true` steps, always pause and show:
+     - What the step will do
+     - Current state (relevant files, git status)
+     - Ask: "Proceed? (y/n)"
+
+  6. **Integration with Ralph Wiggum Loop:** Chains that use `on_failure: retry` can also
+     leverage the stop-hook retry mechanism by creating a `.claude-retry` file. The
+     `overnight-batch` chain demonstrates this pattern (setup-retry step creates the file,
+     cleanup-retry step removes it).
+
+  7. **Final summary table**:
+     | Step | Status | Notes |
+     |------|--------|-------|
+     | step-id | SUCCESS / FAILED / SKIPPED | Brief note |
+
+  **Adding new chains:** Create `~/.claude/commands/chains/<name>.yaml` following the same
+  YAML format. The `/chain` slash command will pick it up automatically.
+
+  ---
+
+  ### Lessons from Production (Apr 16, 2026)
+
+  - **ADO completion:** Once the build pipeline passes, `az repos pr update --id N --status completed --detect false`
+    works directly — no policy flip needed for the dev branch as of Apr 16, 2026. Policy ID 5
+    no longer exists; build pipeline (ID:1) is now the only blocker.
+
+  - **Adversarial review with `on_failure: continue`:** This correctly allows the chain to proceed
+    even when the adversarial review verdict is REVISE. The user decision step (`confirm: true`)
+    then becomes the gate — the human decides whether to address feedback or push anyway. This is
+    the intended design: the review informs, the human decides.

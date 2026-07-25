@@ -1,0 +1,699 @@
+name: autonomous-validation-preflight
+description: |
+  Comprehensive pre-flight validation pattern that checks all dependencies,
+  permissions, credentials, and resources before starting automated workflows.
+  Prevents failures 2 hours into a batch job.
+
+instructions: |
+  # Autonomous Validation Preflight Pattern
+
+  ## Overview
+
+  **Problem:** Batch job fails 2 hours in because of missing dependency, API key, or disk space.
+
+  **Solution:** Comprehensive pre-flight check that validates EVERYTHING before starting.
+
+  **Real example:** Tonight's overnight processing
+  - Pre-flight caught 3 issues before starting:
+    1. Missing ANTHROPIC_API_KEY
+    2. Wrong Python being called (system vs venv)
+    3. Missing RED color variable
+  - Fixed all issues → smooth overnight run
+
+  ## Complete Pre-Flight Template
+
+  ```bash
+  #!/bin/bash
+  # pre-flight-check.sh
+  # Comprehensive validation before automated workflows
+  # Usage: ./pre-flight-check.sh
+
+  set -euo pipefail
+
+  # Colors
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[1;33m'
+  BLUE='\033[0;34m'
+  NC='\033[0m'
+
+  ERRORS=0
+  WARNINGS=0
+
+  # Helper functions
+  error() {
+      echo -e "${RED}❌ ERROR: $1${NC}"
+      ERRORS=$((ERRORS + 1))
+  }
+
+  warn() {
+      echo -e "${YELLOW}⚠️  WARNING: $1${NC}"
+      WARNINGS=$((WARNINGS + 1))
+  }
+
+  success() {
+      echo -e "${GREEN}✅ $1${NC}"
+  }
+
+  echo -e "${BLUE}========================================${NC}"
+  echo -e "${BLUE}Pre-Flight Check - Automated Workflow${NC}"
+  echo -e "${BLUE}========================================${NC}"
+  echo ""
+  echo "🔍 Verifying all systems before starting..."
+  echo ""
+
+  # ============================================
+  # Check 1: Python Environments
+  # ============================================
+  echo -e "${BLUE}1. Checking Python Environments...${NC}"
+
+  if [ -d "/path/to/venv" ]; then
+      if [ -f "/path/to/venv/bin/activate" ]; then
+          success "Virtual environment exists"
+
+          # Test package installation
+          if /path/to/venv/bin/python3 -c "import required_package" 2>/dev/null; then
+              success "required_package installed"
+          else
+              error "required_package not installed in venv"
+              echo "  Fix: source /path/to/venv/bin/activate && pip install required_package"
+          fi
+      else
+          error "Virtual environment corrupted"
+      fi
+  else
+      error "Virtual environment missing at /path/to/venv"
+      echo "  Fix: python3 -m venv /path/to/venv && source /path/to/venv/bin/activate && pip install requirements.txt"
+  fi
+
+  echo ""
+
+  # ============================================
+  # Check 2: System Dependencies
+  # ============================================
+  echo -e "${BLUE}2. Checking System Dependencies...${NC}"
+
+  # Check command-line tools
+  REQUIRED_COMMANDS=("python3" "ffmpeg" "pdftoppm" "parallel")
+
+  for cmd in "${REQUIRED_COMMANDS[@]}"; do
+      if command -v "$cmd" &> /dev/null; then
+          success "$cmd installed"
+      else
+          if [[ "$cmd" == "parallel" ]]; then
+              warn "$cmd not installed (will use xargs fallback)"
+              echo "  Install: sudo apt-get install parallel"
+          else
+              error "$cmd not installed"
+              echo "  Fix: sudo apt-get install $cmd"
+          fi
+      fi
+  done
+
+  echo ""
+
+  # ============================================
+  # Check 3: API Credentials
+  # ============================================
+  echo -e "${BLUE}3. Checking API Credentials...${NC}"
+
+  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+      success "ANTHROPIC_API_KEY is set"
+
+      # Test API connectivity
+      echo "  Testing API connection..."
+      if ~/pdf-env/bin/python3 -c "
+  import anthropic
+  import os
+  client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+  try:
+      response = client.messages.create(
+          model='claude-sonnet-4-5-20250929',
+          max_tokens=10,
+          messages=[{'role': 'user', 'content': 'test'}]
+      )
+      print('API connection successful')
+  except Exception as e:
+      print(f'API error: {e}')
+      exit(1)
+  " 2>&1 | grep -q "successful"; then
+          success "API connection verified"
+      else
+          error "API connection failed"
+          echo "  Check your ANTHROPIC_API_KEY"
+      fi
+  else
+      error "ANTHROPIC_API_KEY not set"
+      echo "  Fix: export ANTHROPIC_API_KEY='your-key-here'"
+  fi
+
+  # Check other API keys if needed
+  for key_name in "OPENAI_API_KEY" "OTHER_API_KEY"; do
+      if [ -n "${!key_name:-}" ]; then
+          success "$key_name is set"
+      else
+          warn "$key_name not set (skip if not needed)"
+      fi
+  done
+
+  echo ""
+
+  # ============================================
+  # Check 4: Disk Space
+  # ============================================
+  echo -e "${BLUE}4. Checking Disk Space...${NC}"
+
+  check_disk_space() {
+      local path="$1"
+      local min_gb="$2"
+      local available_gb=$(df -BG "$path" | tail -1 | awk '{print $4}' | sed 's/G//')
+
+      if [ "$available_gb" -gt "$min_gb" ]; then
+          success "Sufficient space in $path ($available_gb GB available)"
+      else
+          warn "Low disk space in $path ($available_gb GB available, need $min_gb GB)"
+      fi
+  }
+
+  check_disk_space "$HOME/Documents" 5
+  check_disk_space "/tmp" 2
+
+  echo ""
+
+  # ============================================
+  # Check 5: Write Permissions
+  # ============================================
+  echo -e "${BLUE}5. Checking Write Permissions...${NC}"
+
+  TEST_DIRS=(
+      "$HOME/Documents/Project1"
+      "$HOME/Documents/Project2"
+      "/tmp"
+  )
+
+  for dir in "${TEST_DIRS[@]}"; do
+      if [ -w "$dir" ]; then
+          success "Write access: $dir"
+      else
+          error "No write access: $dir"
+          echo "  Fix: chmod +w $dir"
+      fi
+  done
+
+  echo ""
+
+  # ============================================
+  # Check 6: Scripts Exist and Are Executable
+  # ============================================
+  echo -e "${BLUE}6. Checking Scripts...${NC}"
+
+  REQUIRED_SCRIPTS=(
+      "$HOME/Documents/script1.sh"
+      "$HOME/Documents/script2.py"
+      "$HOME/Documents/script3.sh"
+  )
+
+  for script in "${REQUIRED_SCRIPTS[@]}"; do
+      if [ -f "$script" ]; then
+          if [ -x "$script" ]; then
+              success "Script ready: $(basename "$script")"
+          else
+              warn "Script not executable: $(basename "$script")"
+              chmod +x "$script"
+              echo "  Fixed: Made executable"
+          fi
+      else
+          error "Script missing: $script"
+      fi
+  done
+
+  # Check Python script shebangs
+  for py_script in script1.py script2.py; do
+      if [ -f "$py_script" ]; then
+          shebang=$(head -1 "$py_script")
+          if [[ "$shebang" == "#!/path/to/venv/bin/python3" ]]; then
+              success "Correct shebang: $py_script"
+          else
+              warn "Wrong shebang in $py_script: $shebang"
+              echo "  Should be: #!/path/to/venv/bin/python3"
+          fi
+      fi
+  done
+
+  echo ""
+
+  # ============================================
+  # Check 7: Processing Time Estimates
+  # ============================================
+  echo -e "${BLUE}7. Estimating Processing Time...${NC}"
+
+  VIDEO_COUNT=38
+  PDF_COUNT=23
+  README_COUNT=1187
+  PARALLEL_WORKERS=10
+
+  VIDEO_TIME=$((VIDEO_COUNT * 4))  # 4 min per video
+  PDF_TIME=$((PDF_COUNT * 5))      # 5 min per PDF
+  README_TIME=$((README_COUNT / PARALLEL_WORKERS))  # With parallel workers
+
+  TOTAL_MIN=$((VIDEO_TIME + PDF_TIME + README_TIME))
+  TOTAL_HOURS=$((TOTAL_MIN / 60))
+
+  echo "  Videos: $VIDEO_COUNT × 4 min = ~$VIDEO_TIME min (~$((VIDEO_TIME / 60)) hours)"
+  echo "  PDFs: $PDF_COUNT × 5 min = ~$PDF_TIME min (~$((PDF_TIME / 60)) hours)"
+  echo "  READMEs: $README_COUNT ÷ $PARALLEL_WORKERS workers = ~$README_TIME min (~$((README_TIME / 60)) hours)"
+  echo ""
+  echo -e "${YELLOW}  Total estimated time: ~$TOTAL_HOURS hours${NC}"
+
+  if [ $TOTAL_HOURS -gt 10 ]; then
+      warn "Processing will take >10 hours"
+      echo "  Consider running overnight or reducing scope"
+  fi
+
+  echo ""
+
+  # ============================================
+  # Check 8: API Cost Estimates
+  # ============================================
+  echo -e "${BLUE}8. Estimating API Costs...${NC}"
+
+  # Calculate costs based on API pricing
+  SLIDES_ESTIMATE=$((PDF_COUNT * 12))  # Assume 12 slides per PDF
+  SLIDE_COST=$(echo "scale=3; $SLIDES_ESTIMATE * 0.006" | bc)  # $0.006 per slide (Vision API)
+  README_COST=$(echo "scale=3; $README_COUNT * 0.002" | bc)    # $0.002 per README (Text API)
+  TOTAL_COST=$(echo "scale=3; $SLIDE_COST + $README_COST" | bc)
+
+  echo "  Slide descriptions: ~$SLIDES_ESTIMATE slides × \$0.006 = ~\$$SLIDE_COST"
+  echo "  README generation: $README_COUNT × \$0.002 = ~\$$README_COST"
+  echo ""
+  echo -e "${YELLOW}  Total estimated API cost: ~\$$TOTAL_COST${NC}"
+
+  if (( $(echo "$TOTAL_COST > 50" | bc -l) )); then
+      warn "API costs will exceed \$50"
+      echo "  Consider reducing scope or batch size"
+  fi
+
+  echo ""
+
+  # ============================================
+  # Check 9: Network Connectivity
+  # ============================================
+  echo -e "${BLUE}9. Checking Network Connectivity...${NC}"
+
+  if ping -c 1 -W 2 8.8.8.8 &> /dev/null; then
+      success "Internet connection available"
+  else
+      error "No internet connection"
+      echo "  Fix: Check network settings"
+  fi
+
+  # Check specific API endpoints
+  if curl -s --connect-timeout 5 https://api.anthropic.com > /dev/null 2>&1; then
+      success "Anthropic API reachable"
+  else
+      warn "Cannot reach Anthropic API (may be temporary)"
+  fi
+
+  echo ""
+
+  # ============================================
+  # Check 10: Process Conflicts
+  # ============================================
+  echo -e "${BLUE}10. Checking for Process Conflicts...${NC}"
+
+  # Check if another instance is running
+  if pgrep -f "process-all-tonight.sh" > /dev/null; then
+      warn "Another instance of process-all-tonight.sh is running"
+      echo "  Check: ps aux | grep process-all-tonight"
+  else
+      success "No conflicting processes"
+  fi
+
+  echo ""
+
+  # ============================================
+  # Summary
+  # ============================================
+  echo -e "${BLUE}========================================${NC}"
+  echo -e "${BLUE}Pre-Flight Summary${NC}"
+  echo -e "${BLUE}========================================${NC}"
+  echo ""
+
+  if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
+      echo -e "${GREEN}✅ ALL SYSTEMS GO!${NC}"
+      echo ""
+      echo "Ready to process:"
+      echo "  • $VIDEO_COUNT videos → transcripts"
+      echo "  • $PDF_COUNT PDFs → ~$SLIDES_ESTIMATE slides with descriptions"
+      echo "  • $README_COUNT directories → README.md files"
+      echo ""
+      echo "Estimated time: ~$TOTAL_HOURS hours"
+      echo "Estimated cost: ~\$$TOTAL_COST"
+      echo ""
+      echo -e "${GREEN}To start: ./process-all-tonight.sh${NC}"
+      exit 0
+
+  elif [ $ERRORS -eq 0 ]; then
+      echo -e "${YELLOW}⚠️  READY WITH WARNINGS ($WARNINGS warnings)${NC}"
+      echo ""
+      echo "System is ready but has warnings (see above)."
+      echo "You can proceed if you're comfortable with the warnings."
+      echo ""
+      echo -e "${YELLOW}To start: ./process-all-tonight.sh${NC}"
+      exit 0
+
+  else
+      echo -e "${RED}❌ NOT READY ($ERRORS errors, $WARNINGS warnings)${NC}"
+      echo ""
+      echo "Please fix the errors above before running."
+      echo "Re-run this check after fixing: ./pre-flight-check.sh"
+      exit 1
+  fi
+  ```
+
+  ## Key Validation Categories
+
+  ### 1. Dependencies
+
+  **What to check:**
+  - System packages (ffmpeg, poppler-utils, etc.)
+  - Python packages
+  - Node modules
+  - Command-line tools
+
+  **How to check:**
+  ```bash
+  # Command exists
+  if command -v tool &> /dev/null; then
+      echo "✅ tool installed"
+  else
+      echo "❌ tool missing"
+  fi
+
+  # Python package
+  if python3 -c "import package" 2>/dev/null; then
+      echo "✅ package installed"
+  else
+      echo "❌ package missing"
+  fi
+
+  # Specific version
+  version=$(tool --version | grep -oP '\d+\.\d+\.\d+')
+  if [[ "$version" > "2.0.0" ]]; then
+      echo "✅ tool version OK ($version)"
+  else
+      echo "⚠️  tool version old ($version)"
+  fi
+  ```
+
+  ### 2. Credentials & API Keys
+
+  **What to check:**
+  - Environment variables set
+  - API connectivity
+  - Token validity
+  - Rate limits/quotas
+
+  **How to check:**
+  ```bash
+  # Variable set
+  if [ -n "${API_KEY:-}" ]; then
+      echo "✅ API_KEY set"
+  else
+      echo "❌ API_KEY not set"
+  fi
+
+  # Test API connection
+  if curl -s -H "Authorization: Bearer $API_KEY" \
+       https://api.example.com/test | grep -q "success"; then
+      echo "✅ API connection OK"
+  else
+      echo "❌ API connection failed"
+  fi
+  ```
+
+  ### 3. Resources
+
+  **What to check:**
+  - Disk space
+  - Memory available
+  - CPU load
+  - Network bandwidth
+
+  **How to check:**
+  ```bash
+  # Disk space
+  available_gb=$(df -BG /path | tail -1 | awk '{print $4}' | sed 's/G//')
+  if [ "$available_gb" -gt 10 ]; then
+      echo "✅ Sufficient disk space ($available_gb GB)"
+  else
+      echo "⚠️  Low disk space ($available_gb GB)"
+  fi
+
+  # Memory
+  available_mb=$(free -m | awk 'NR==2 {print $7}')
+  if [ "$available_mb" -gt 2000 ]; then
+      echo "✅ Sufficient memory ($available_mb MB)"
+  else
+      echo "⚠️  Low memory ($available_mb MB)"
+  fi
+
+  # CPU load
+  load=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | tr -d ',')
+  cores=$(nproc)
+  if (( $(echo "$load < $cores" | bc -l) )); then
+      echo "✅ CPU load OK ($load / $cores cores)"
+  else
+      echo "⚠️  High CPU load ($load / $cores cores)"
+  fi
+  ```
+
+  ### 4. Permissions
+
+  **What to check:**
+  - File/directory write access
+  - Script execute permissions
+  - User/group permissions
+
+  **How to check:**
+  ```bash
+  # Write access
+  if [ -w "/path/to/dir" ]; then
+      echo "✅ Write access: /path/to/dir"
+  else
+      echo "❌ No write access: /path/to/dir"
+  fi
+
+  # Execute permission
+  if [ -x "./script.sh" ]; then
+      echo "✅ Script executable"
+  else
+      echo "⚠️  Script not executable"
+      chmod +x "./script.sh"
+  fi
+
+  # Test write with temp file
+  if touch "/path/test.tmp" 2>/dev/null; then
+      rm "/path/test.tmp"
+      echo "✅ Can write to /path"
+  else
+      echo "❌ Cannot write to /path"
+  fi
+  ```
+
+  ### 5. Script Integrity
+
+  **What to check:**
+  - Scripts exist
+  - Correct shebangs
+  - No syntax errors
+  - Expected functions present
+
+  **How to check:**
+  ```bash
+  # Script exists
+  if [ -f "./script.sh" ]; then
+      echo "✅ Script found"
+  else
+      echo "❌ Script missing"
+  fi
+
+  # Check shebang
+  shebang=$(head -1 ./script.py)
+  if [[ "$shebang" == "#!/usr/bin/env python3" ]]; then
+      echo "✅ Correct shebang"
+  else
+      echo "⚠️  Wrong shebang: $shebang"
+  fi
+
+  # Syntax check
+  if bash -n ./script.sh 2>/dev/null; then
+      echo "✅ No syntax errors"
+  else
+      echo "❌ Syntax errors found"
+  fi
+
+  # Function exists
+  if grep -q "^function_name()" ./script.sh; then
+      echo "✅ Required function present"
+  else
+      echo "❌ Required function missing"
+  fi
+  ```
+
+  ## Best Practices
+
+  ### Exit Codes
+
+  - `0` = All checks passed
+  - `0` with warnings = Passed with warnings
+  - `1` = Failed (errors found)
+
+  ```bash
+  if [ $ERRORS -eq 0 ]; then
+      exit 0
+  else
+      exit 1
+  fi
+  ```
+
+  ### Categorize Issues
+
+  - **ERROR:** Must fix before running
+  - **WARNING:** Should fix, but can proceed
+  - **SUCCESS:** Check passed
+
+  ### Provide Fixes
+
+  Always tell user how to fix errors:
+  ```bash
+  error "Python package missing"
+  echo "  Fix: pip install package-name"
+  ```
+
+  ### Test, Don't Assume
+
+  **Don't just check if file exists:**
+  ```bash
+  # ❌ Weak check
+  if [ -f script.py ]; then
+      echo "✅ Script exists"
+  fi
+
+  # ✅ Strong check
+  if [ -f script.py ] && [ -x script.py ]; then
+      if python3 script.py --test 2>&1 | grep -q "OK"; then
+          echo "✅ Script works"
+      else
+          echo "❌ Script fails test"
+      fi
+  fi
+  ```
+
+  ### Estimate Costs & Time
+
+  Users want to know:
+  - How long will it take?
+  - How much will it cost?
+  - When will it finish?
+
+  Always provide estimates in pre-flight.
+
+  ## Common Gotchas
+
+  ### 1. Environment Variable Inheritance
+
+  **Problem:** Variables set in .bashrc not available to background processes.
+
+  **Fix:** Export before running:
+  ```bash
+  export API_KEY="..." && ./script.sh
+  ```
+
+  ### 2. Python Virtual Environment
+
+  **Problem:** Wrong Python being used (system vs venv).
+
+  **Fix:** Check shebang points to venv:
+  ```bash
+  #!/path/to/venv/bin/python3
+  ```
+
+  ### 3. Script Not Executable
+
+  **Problem:** Script has no execute permission.
+
+  **Fix:** Auto-fix in pre-flight:
+  ```bash
+  if [ ! -x "./script.sh" ]; then
+      chmod +x "./script.sh"
+      echo "  Fixed: Made executable"
+  fi
+  ```
+
+  ### 4. Missing Color Variables
+
+  **Problem:** Script references undefined color variable.
+
+  **Fix:** Define all colors at top of script:
+  ```bash
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[1;33m'
+  BLUE='\033[0;34m'
+  NC='\033[0m'
+  ```
+
+example_usage: |
+  # Example: Pre-flight for overnight batch job
+
+  # 1. Create pre-flight-check.sh (use template above)
+
+  # 2. Run pre-flight before starting
+  ./pre-flight-check.sh
+
+  # Output:
+  # ========================================
+  # Pre-Flight Check
+  # ========================================
+  #
+  # ✅ Whisper environment exists
+  # ✅ PDF environment exists
+  # ✅ ANTHROPIC_API_KEY is set
+  # ✅ API connection verified
+  # ✅ Sufficient disk space (427 GB)
+  # ✅ All scripts ready
+  #
+  # ========================================
+  # ✅ ALL SYSTEMS GO!
+  # ========================================
+  #
+  # Ready to process:
+  #   • 38 videos
+  #   • 23 PDFs
+  #   • 1187 READMEs
+  #
+  # Estimated time: ~5 hours
+  # Estimated cost: ~$3.00
+
+  # 3. If checks pass, run main script
+  ./process-all-tonight.sh --yes
+
+metadata:
+  version: "1.0.0"
+  created: "2026-02-12"
+  updated: "2026-02-12"
+  tags:
+    - validation
+    - pre-flight
+    - dependencies
+    - error-prevention
+    - automation
+  related_skills:
+    - batch-processing-orchestration
+    - parallel-batch-generation
+  learned_from:
+    - "Pre-flight caught 3 critical issues before overnight run"
+    - "API connection test prevented auth failures 2h into job"
+    - "Disk space check prevented out-of-space crash"
+    - "Script permission auto-fix saved manual intervention"

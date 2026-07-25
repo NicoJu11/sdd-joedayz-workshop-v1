@@ -1,0 +1,102 @@
+name: starter-kcp
+description: Add a knowledge.yaml manifest to your project so any AI agent can navigate it in seconds instead of making 30+ exploratory tool calls. The Knowledge Context Protocol (KCP) makes your CLAUDE.md and skills instantly discoverable.
+version: 1.0.0
+
+instructions: |
+  # Knowledge Context Protocol — Project Manifest
+
+  ## What This Is
+
+  A `knowledge.yaml` file at your project root is a machine-readable index of your
+  project's knowledge infrastructure. When an AI agent opens your project, it reads
+  `knowledge.yaml` first and knows exactly where to find everything — instead of
+  spending 30+ tool calls exploring blindly.
+
+  **Measured impact:**
+  - Without manifest: ~33 tool calls to answer one question
+  - With knowledge.yaml: ~3 tool calls
+  - Complex AI frameworks: 73–80% reduction
+
+  ## Minimal knowledge.yaml
+
+  Create this at your project root:
+
+  ```yaml
+  # knowledge.yaml — Knowledge Context Protocol manifest
+  # Spec: https://cantara.github.io/knowledge-context-protocol/
+
+  schema_version: "1.0"
+  project:
+    name: "[Your Project Name]"
+    description: "[One sentence: what this project does]"
+    type: "[library | web-app | api | cli | other]"
+
+  knowledge:
+    primary_context:
+      - path: CLAUDE.md
+        description: "Project conventions, build commands, patterns to follow"
+        priority: critical
+
+    skills:
+      - path: .claude/skills/
+        description: "Domain-specific AI skills for this project"
+        priority: high
+
+    architecture:
+      - path: docs/decisions/
+        description: "Architecture Decision Records"
+        priority: medium
+        optional: true
+
+    learning:
+      - path: LEARNINGS.md
+        description: "Ongoing learning log — what worked, what didn't"
+        priority: medium
+        optional: true
+  ```
+
+  ## What to Include
+
+  Add entries for anything an AI agent should know about your project:
+
+  | What | path example | priority |
+  |------|-------------|----------|
+  | CLAUDE.md | `CLAUDE.md` | critical |
+  | Skills directory | `.claude/skills/` | high |
+  | API contracts | `docs/api/openapi.yaml` | high |
+  | Architecture docs | `docs/decisions/` | medium |
+  | Learning log | `LEARNINGS.md` | medium |
+  | Test patterns | `src/test/README.md` | low |
+
+  Keep it honest. Only list files that actually exist and are maintained.
+
+  ## How to Verify It Works
+
+  After adding `knowledge.yaml`, start a new Claude Code session in the project and ask:
+
+  > "Read my knowledge.yaml and tell me what you found."
+
+  Claude should describe your project structure from the manifest, not from exploring.
+  The difference: manifest-driven response uses 3-5 tool calls. Exploration uses 25-40.
+
+  ## Full Spec
+
+  Complete specification and advanced features (fragment manifests, nested manifests,
+  tool-call reduction benchmarks):
+
+  **https://cantara.github.io/knowledge-context-protocol/**
+
+  5-minute setup guide (with copy-paste examples):
+  **https://wiki.totto.org/blog/2026/02/28/add-knowledgeyaml-to-your-project-in-five-minutes/**
+
+  ## When to Update
+
+  Update `knowledge.yaml` when:
+  - You add a new significant documentation directory
+  - You reorganize your skills structure
+  - A file marked `critical` or `high` moves to a different path
+
+  `knowledge.yaml` rots if ignored. Run a health check after major restructures:
+  > "Check all paths in my knowledge.yaml and tell me which ones don't exist."
+
+tags: [kcp, knowledge-context-protocol, context, onboarding, discoverability]

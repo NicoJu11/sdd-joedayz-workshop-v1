@@ -1,0 +1,552 @@
+name: kcp
+description: Knowledge Context Protocol (KCP) v0.14 — structured metadata standard making knowledge navigable by AI agents. Use when creating or editing knowledge.yaml, explaining KCP to collaborators, validating a KCP file, or integrating KCP with Synthesis or MkDocs projects.
+version: 1.3.0
+created: 2026-02-25
+updated: 2026-05-12
+
+trigger_phrases:
+  - "kcp"
+  - "knowledge context protocol"
+  - "knowledge.yaml"
+  - "create a knowledge.yaml"
+  - "add kcp"
+  - "kcp for this project"
+  - "llms.txt"
+  - "knowledge units"
+  - "synthesis export kcp"
+  - "maybe we should add some blog-entry links too?"
+
+tags:
+  - kcp
+  - knowledge-management
+  - ai-navigation
+  - metadata
+  - documentation
+  - synthesis
+
+instructions: |
+  # Knowledge Context Protocol (KCP) v0.14
+
+  **One-line:** KCP is to knowledge what MCP is to tools.
+  **GitHub:** https://github.com/Cantara/knowledge-context-protocol
+  **Purpose:** A structured metadata standard making knowledge navigable by AI agents.
+  **Spec:** SPEC.md in repo — local copy at /src/cantara/knowledge-context-protocol/SPEC.md
+
+  **MCP Bridge:** `kcp-mcp@0.11.0` (npm) — exposes knowledge.yaml as MCP resources,
+  tools (search_knowledge, get_unit, get_command_syntax), and prompts (sdd-review,
+  kcp-explore). Works with Claude Code, GitHub Copilot, Cursor. See `kcp-mcp` skill.
+
+  **Conformance suite:** `conformance/` in repo — YAML fixtures + runners in Java/Python/TypeScript.
+  Run to verify parser correctness before releasing.
+
+  **Compliance audit:** `examples/compliance-audit/` — generate GDPR Art. 30 ROPA and NIS2
+  access log directly from a knowledge.yaml (Python scripts, no extra dependencies beyond pyyaml).
+
+  **Discovery:** `/.well-known/kcp.json` — HTTP-based discovery endpoint. Live at
+  https://cantara.github.io/knowledge-context-protocol/.well-known/kcp.json
+
+  KCP gives AI agents a map of what exists, what it answers, how fresh it is,
+  and in what order to read it. Without KCP an agent must guess. With KCP it navigates.
+
+  ---
+
+  ## When to Use KCP
+
+  - Any project with more than a handful of docs (rule of thumb: 5+ markdown files)
+  - MkDocs sites where you also want `llms.txt` machine-readable coverage
+  - Projects indexed by Synthesis (use `synthesis export --format kcp` to generate)
+  - Repos where agents often ask "where do I start?" or "which file covers X?"
+  - When onboarding new agents or humans and you want navigation to be self-evident
+
+  **KCP vs llms.txt:**
+  - `llms.txt` — flat index of what a site contains
+  - `knowledge.yaml` — how content is structured, what it depends on, how fresh it is, when to load it
+  - They coexist. KCP adds intent, dependency order, freshness, and audience targeting.
+
+  ---
+
+  ## Placement
+
+  - `knowledge.yaml` goes at the root of the docs directory (same level as `llms.txt` if present)
+  - For MkDocs sites: place in the `docs/` folder
+  - For non-MkDocs projects: place at project root or alongside the main README
+
+  ---
+
+  ## Full Structure (v0.14)
+
+  ```yaml
+  kcp_version: "0.14"         # REQUIRED
+  project: <project-id>
+  version: 1.0.0
+  updated: <ISO date YYYY-MM-DD>
+
+  # Level 3: Auth methods (root-level)
+  auth:
+    methods:
+      - type: oauth2
+        issuer: https://auth.example.com
+        scopes: ["read:knowledge"]
+        header: Authorization
+      - type: none   # fallback for public access
+
+  # Level 3: Audit requirements (root-level)
+  trust:
+    audit:
+      agent_must_log: true
+      require_trace_context: true   # W3C Trace Context (traceparent)
+
+  # Level 3: Compliance / data governance (root-level defaults)
+  compliance:
+    sensitivity: high   # low | medium | high | critical
+    data_residency: [EU]
+    data_categories: [personal, health]
+    legal_basis: explicit_consent
+
+  # Level 3/4: Delegation constraints (root-level defaults)
+  delegation:
+    max_depth: 2
+    human_in_the_loop: approval   # never | approval | notification
+    audit_chain: true
+
+  # v0.12: Governance defaults (root-level — units inherit, can override)
+  visibility:
+    default: internal          # public | internal | restricted | private
+  authority:
+    read: initiative           # initiative | requires_approval | denied
+    summarize: initiative
+    modify: requires_approval
+    share_externally: denied
+    execute: denied
+
+  # v0.12: Discovery provenance defaults
+  discovery:
+    source: manual             # manual | web_traversal | openapi | llm_inference
+    verification_status: verified   # rumored | observed | verified | deprecated
+    observed_at: "2026-01-01T00:00:00Z"
+
+  units:
+    - id: <unique-identifier>
+      path: <relative path>
+      kind: knowledge          # knowledge | schema | service | policy | executable (v0.14)
+      intent: "<What question does this answer?>"
+      scope: global | project | module
+      audience: [human, agent, developer, operator, architect]
+      validated: <ISO date YYYY-MM-DD>
+      deprecated: false        # v0.12 — set true when superseded but kept for history
+      access: public | authenticated | restricted   # Level 2
+      auth_scope: "read:knowledge"   # Level 2
+      depends_on: [<unit-id>, ...]
+      supersedes: <unit-id>
+      triggers: [<keyword>, ...]
+      compliance:              # Level 3 — overrides root
+        sensitivity: medium
+      delegation:              # Level 3/4 — overrides root
+        max_depth: 1
+      visibility:              # v0.12 — overrides root visibility
+        default: public
+      authority:               # v0.12 — overrides root authority (full replacement, no merge)
+        read: initiative
+        modify: denied
+      discovery:               # v0.12 — merges with root discovery
+        verification_status: observed
+        confidence: 0.8        # 0.0–1.0; rumored MUST be < 0.5
+
+  relationships:
+    - from: <unit-id>
+      to: <unit-id>
+      type: enables | context | supersedes | contradicts
+  ```
+
+  ---
+
+  ## Field Definitions
+
+  ### Top-Level Fields
+
+  | Field   | Required | Description |
+  |---------|----------|-------------|
+  | project | yes      | Project name (matches repo or product name) |
+  | version | yes      | SemVer of the knowledge.yaml itself (not the project) |
+  | updated | yes      | ISO date this file was last updated |
+
+  ### Unit Fields
+
+  | Field        | Required | Valid Values / Notes |
+  |--------------|----------|----------------------|
+  | id           | yes      | Unique within project. kebab-case. e.g. `getting-started`, `api-overview` |
+  | path         | yes      | Relative to project root (where knowledge.yaml lives). e.g. `docs/guide.md` |
+  | kind         | no       | `knowledge` (default) \| `schema` \| `service` \| `policy` \| `executable` — v0.14 |
+  | intent       | yes      | One sentence. Question format preferred. What would an agent ask to find this? |
+  | scope        | yes      | `global` = site-wide, `project` = this project only, `module` = sub-section |
+  | audience     | yes      | List: `human`, `agent`, `developer`, `operator`, `architect` (combine freely) |
+  | validated    | yes      | ISO date (YYYY-MM-DD) last confirmed accurate by a human |
+  | deprecated   | no       | `true` when superseded but kept for history — agents should not use for new work |
+  | depends_on   | no       | List of unit ids that must be understood first |
+  | supersedes   | no       | Single unit id this unit replaces (old unit should remain for history) |
+  | triggers     | no       | Keywords or task contexts that make this unit relevant |
+  | visibility   | no       | v0.12 — conditional access. `default: public\|internal\|restricted\|private`. Overrides root. |
+  | authority    | no       | v0.12 — action permissions. Keys: `read`, `summarize`, `modify`, `share_externally`, `execute`. Values: `initiative\|requires_approval\|denied`. Full replacement (no merge). |
+  | discovery    | no       | v0.12 — provenance. `source`, `verification_status` (rumored/observed/verified/deprecated), `confidence` (0.0–1.0). `rumored` MUST have confidence < 0.5. Merges with root. |
+
+  ---
+
+  ## New in v0.12–v0.14 (Governance + Query)
+
+  ### Governance Blocks (v0.12)
+
+  `visibility`, `authority`, and `discovery` can be set at root (manifest-wide defaults)
+  or per-unit (overrides). Use for regulated environments, multi-agent workflows, and
+  automated manifest generation.
+
+  **visibility** — who can see this unit, conditioned on environment or agent role:
+  ```yaml
+  visibility:
+    default: internal
+    conditions:
+      - if:
+          agent_role: auditor
+        then: public
+  ```
+
+  **authority** — what actions agents may take without approval:
+  ```yaml
+  authority:
+    read: initiative
+    summarize: initiative
+    modify: requires_approval   # agent must ask before changing
+    share_externally: denied
+    execute: denied
+  ```
+  Safe defaults: read/summarize = initiative. Everything else = denied.
+
+  **discovery** — how was this capability found, and how confident are we:
+  ```yaml
+  discovery:
+    source: llm_inference       # or: manual | web_traversal | openapi
+    verification_status: rumored
+    confidence: 0.3             # rumored MUST be < 0.5
+    observed_at: "2026-03-01T00:00:00Z"
+  ```
+
+  ### Query Vocabulary (v0.14)
+
+  Agents can query the manifest directly instead of fetching all units. Pass a `query` block
+  to the MCP bridge (`search_knowledge` tool) or construct it programmatically:
+
+  ```yaml
+  query:
+    terms: ["authentication", "OAuth"]      # keyword match against triggers + intent
+    audience: [developer]                   # filter by audience
+    max_token_budget: 8000                  # only return units that fit this budget
+    has_capabilities: [read_code]           # skip units requiring caps the agent lacks
+    exclude_stale: true                     # drop units past freshness_policy.max_age_days
+    federation_scope: declared              # expand to sub-manifests in manifests[]
+  ```
+
+  Response includes `score`, `path`, `token_estimate`, `match_reason` per unit.
+
+  ### intent Field — Writing Guide
+
+  Good intent statements:
+  - "What is this project and how do I get started?"
+  - "How do I configure authentication?"
+  - "What are the API endpoints and their request/response formats?"
+  - "How do I deploy to production?"
+
+  Weak intent statements (avoid):
+  - "Overview" (too vague, not a question)
+  - "This file covers the API" (statement, not a question an agent would form)
+  - "README" (just the filename)
+
+  ### scope Field
+
+  - `global`: Content relevant across the entire site or organization
+  - `project`: Content scoped to this specific project/repo
+  - `module`: Content scoped to a sub-component or feature area
+
+  ### audience Field
+
+  Combine values in a list:
+  - `human`: Written for people to read
+  - `agent`: Optimized for AI agent consumption
+  - `developer`: Technical implementer
+  - `operator`: Deployment/ops/SRE
+  - `architect`: System design decisions
+
+  ---
+
+  ## Relationship Types
+
+  ```yaml
+  relationships:
+    - from: setup-guide
+      to: api-reference
+      type: enables        # setup-guide must be read before api-reference makes sense
+
+    - from: architecture
+      to: getting-started
+      type: context        # architecture provides context for getting-started
+
+    - from: new-config
+      to: old-config
+      type: supersedes     # new-config replaces old-config
+
+    - from: approach-a
+      to: approach-b
+      type: contradicts    # these two units conflict (use sparingly, document why)
+  ```
+
+  **Type reference:**
+  - `enables`: A must be understood before B makes sense (ordering dependency)
+  - `context`: A provides background that enriches B (soft dependency)
+  - `supersedes`: A replaces B (B kept for historical reference)
+  - `contradicts`: A and B conflict — use with care, add a comment explaining why
+
+  ---
+
+  ## Minimum Viable KCP
+
+  Three fields are enough to start:
+
+  ```yaml
+  kcp_version: "0.14"
+  project: my-project
+  version: 1.0.0
+  units:
+    - id: overview
+      path: README.md
+      intent: "What is this project and how do I get started?"
+  ```
+
+  Add more fields as the project grows.
+
+  ---
+
+  ## Adoption Gradient
+
+  Start minimal, add complexity as navigation problems arise:
+
+  ### Stage 1 — Bootstrap (1 unit, 3 fields)
+  Just enough to be parseable. Covers the README.
+
+  ### Stage 2 — Navigable (3-10 units, all required fields)
+  Add intent, scope, audience, validated to each file you want agents to discover.
+  Add `depends_on` where reading order matters.
+
+  ### Stage 3 — Relational (add relationships block)
+  Express explicit relationships between units. Useful when docs cross-reference
+  each other or have ordering constraints.
+
+  ### Stage 4 — Agent-Optimized (add triggers, supersedes)
+  Add `triggers` to help agents find the right unit by keyword.
+  Add `supersedes` when you replace old docs with new ones.
+
+  ### Stage 5 — Governed (Level 3 fields, v0.12+)
+  Add `visibility`, `authority`, `discovery` blocks when:
+  - Different agents or environments need different access levels
+  - You need to declare what actions agents may take without human approval
+  - Manifest was auto-generated and you want to track verification status per unit
+  - Auth + compliance fields for GDPR/NIS2 logging
+
+  ### Stage 6 — Query-Optimised (Level 4, v0.14+)
+  Use the query vocabulary when:
+  - Agents operate with tight token budgets
+  - Federated manifests span multiple repos
+  - You want agent-native manifest navigation via the MCP bridge `search_knowledge` tool
+
+  ---
+
+  ## Integration with Synthesis
+
+  Synthesis can generate `knowledge.yaml` automatically from its index:
+
+  ```bash
+  # Generate KCP intent map from indexed workspace
+  synthesis export --format kcp --output knowledge.yaml
+
+  # Filter by file type (e.g., only documentation files)
+  synthesis export --format kcp --type DOCUMENTATION --output knowledge.yaml
+
+  # Filter by type CODE
+  synthesis export --format kcp --type CODE --output knowledge-code.yaml
+  ```
+
+  The generated file uses Synthesis metadata (file paths, descriptions, relationships)
+  to populate KCP units. Review and refine the `intent` fields after generation —
+  Synthesis provides good starting points but human review improves quality.
+
+  **Workflow:**
+  1. `synthesis scan` — index the workspace
+  2. `synthesis export --format kcp --output docs/knowledge.yaml` — generate draft
+  3. Edit `intent` fields to be questions, not statements
+  4. Add `triggers` for agent-relevant keywords
+  5. Commit `docs/knowledge.yaml` alongside `docs/llms.txt`
+
+  ---
+
+  ## Validation
+
+  ```bash
+  # Install the KCP Python parser
+  pip install kcp  # or: pip install -e parsers/python/ (from repo)
+
+  # Validate a knowledge.yaml file
+  python -m kcp validate knowledge.yaml
+
+  # Common validation errors:
+  # - Duplicate ids within the same project
+  # - depends_on referencing a non-existent id
+  # - supersedes referencing a non-existent id
+  # - Invalid scope value (must be global/project/module)
+  # - Invalid audience value
+  # - Invalid relationship type
+  ```
+
+  Parsers:
+  - Python: `parsers/python/` in the repo
+  - Java: `parsers/java/` in the repo
+
+  ---
+
+  ## Complete Example
+
+  ```yaml
+  kcp_version: "0.14"
+  project: my-api-service
+  version: 1.0.0
+  updated: 2026-05-12
+
+  units:
+    - id: overview
+      path: README.md
+      intent: "What is this service, what problem does it solve, and how do I get started?"
+      scope: project
+      audience: [human, agent, developer]
+      validated: 2026-02-20
+
+    - id: architecture
+      path: docs/architecture.md
+      intent: "How is the service structured, and what are its main components?"
+      scope: project
+      audience: [agent, architect, developer]
+      validated: 2026-02-18
+      triggers: [design, components, structure, modules]
+
+    - id: api-reference
+      path: docs/api.md
+      intent: "What are the API endpoints, their parameters, and response formats?"
+      scope: project
+      audience: [developer, agent]
+      validated: 2026-02-22
+      depends_on: [overview]
+      triggers: [endpoints, REST, HTTP, request, response, API]
+
+    - id: deployment-guide
+      path: docs/deploy.md
+      intent: "How do I deploy this service to production?"
+      scope: project
+      audience: [operator, developer]
+      validated: 2026-01-30
+      depends_on: [overview, architecture]
+      triggers: [deploy, production, docker, kubernetes, release]
+
+    - id: config-reference
+      path: docs/config.md
+      intent: "What configuration options are available and what do they control?"
+      scope: project
+      audience: [operator, developer, agent]
+      validated: 2026-02-10
+      depends_on: [overview]
+      triggers: [config, environment, settings, env vars]
+
+    - id: changelog
+      path: CHANGELOG.md
+      intent: "What has changed between versions?"
+      scope: project
+      audience: [human, developer]
+      validated: 2026-02-25
+
+  relationships:
+    - from: overview
+      to: api-reference
+      type: enables
+
+    - from: architecture
+      to: api-reference
+      type: context
+
+    - from: overview
+      to: deployment-guide
+      type: enables
+
+    - from: architecture
+      to: deployment-guide
+      type: context
+  ```
+
+  ---
+
+  ## MkDocs Integration Pattern
+
+  For MkDocs sites (e.g., totto-wiki, Synthesis docs):
+
+  ```
+  docs/
+  ├── knowledge.yaml    ← KCP file here (alongside llms.txt)
+  ├── llms.txt          ← flat index for LLMs
+  ├── index.md
+  ├── about/
+  └── blog/
+  ```
+
+  The `path` values in `knowledge.yaml` are relative to the `docs/` folder:
+  ```yaml
+  - id: home
+    path: index.md          # not docs/index.md
+    intent: "What is this site and where should I start?"
+  ```
+
+  ---
+
+  ## Quick Reference Card
+
+  | Task | Command / Pattern |
+  |------|-------------------|
+  | Generate from Synthesis | `synthesis export --format kcp --output docs/knowledge.yaml` |
+  | Validate | `python -m kcp validate knowledge.yaml` |
+  | Minimum viable | project + version + 1 unit with id/path/intent |
+  | Good intent | One sentence, question format, what an agent would ask |
+  | Placement (MkDocs) | `docs/knowledge.yaml` |
+  | Placement (general) | project root or alongside README |
+
+  ---
+
+  ## When stuck
+
+  If you've exhausted the steps in this skill (generate → edit intent fields → validate) and
+  cannot proceed, stop.
+
+  **Do NOT:**
+  - Invent KCP fields or structure not defined in this skill or the spec
+  - Silently omit required fields and hope validation catches it later
+  - Expand the knowledge.yaml scope to cover files you weren't asked to document
+
+  **Do:**
+  - Report which step failed and what the error or ambiguity was
+  - Ask the user to clarify the intent question for the problematic unit(s)
+  - Ask whether to proceed with a partial file or wait for clarification
+
+  Rationale: a half-correct knowledge.yaml misleads agents more than no file at all.
+  Stop and report rather than guess.
+
+examples:
+  - "create a knowledge.yaml for this project"
+  - "add kcp to the docs folder"
+  - "generate knowledge.yaml from synthesis"
+  - "validate this knowledge.yaml"
+  - "explain what kcp is"
+  - "add a unit to knowledge.yaml for the api docs"
+  - "what's the difference between kcp and llms.txt"
+  - "write the intent field for this file"
+

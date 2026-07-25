@@ -1,0 +1,313 @@
+name: sdd-workshop-facilitation
+version: 1.0.0
+description: >
+  Domain and technical skill for the sdd-workshop-boost repository — the SDD (Skill-Driven
+  Development) workshop distribution package. Covers the 19 installed skills and what each does,
+  the 6 SDD pillars, workshop flow and timing, install system, how to add new skills, how to
+  customize for different tech stacks, and common participant questions.
+
+  Trigger phrases: "sdd workshop, workshop facilitation, skill-driven development, workshop skills,
+  sdd boost, workshop install, sdd pillars, workshop curriculum, sdd methodology, add workshop skill"
+
+context:
+  repo: /src/exoreaction/sdd-workshop-boost
+  org: exoreaction
+
+instructions: |
+  ## Overview
+
+  `sdd-workshop-boost` is the distribution package for SDD (Skill-Driven Development) workshops.
+  It installs 19 production-grade Claude Code skills and supporting infrastructure to participants'
+  machines, giving them an immediate methodology toolkit.
+
+  **Not a compiled project.** Contains Markdown, YAML skill files, shell scripts, and templates.
+  No build system — distributed via `git clone` + `./install.sh`.
+
+  ## Repository Structure
+
+  ```
+  sdd-workshop-boost/
+  +-- skills/                  # 19 YAML skills + 1 navigator directory
+  |   +-- sdd-context.yaml    # Methodology overview (entry point)
+  |   +-- claude-md-guidelines.yaml
+  |   +-- verification-patterns.yaml
+  |   +-- fear-driven-development.yaml
+  |   +-- ... (19 total)
+  |   +-- sdd-navigator/      # Directory-format skill (SKILL.md)
+  +-- memory/                  # Memory files for participant learning capture
+  +-- templates/               # Scaffold templates
+  |   +-- CLAUDE.md            # Template project CLAUDE.md
+  |   +-- LEARNINGS.md         # Template learning journal
+  |   +-- skill-template.yaml  # Template for writing new skills
+  +-- tutorial/                # Step-by-step tutorial (6 steps)
+  |   +-- 01-install.md
+  |   +-- 02-claude-md.md
+  |   +-- 03-first-skill.md
+  |   +-- 04-daily-workflow.md
+  |   +-- 05-navigator.md
+  |   +-- 06-maintaining.md
+  |   +-- README.md
+  +-- facilitator/             # Facilitator-only materials
+  |   +-- FACILITATOR-GUIDE.md # Master guide (moments, audience notes, anti-patterns)
+  |   +-- demo-script.md       # Live demo script
+  |   +-- common-failures.md   # What goes wrong and how to fix it
+  |   +-- timing-2h30.md       # 2.5-hour keynote timing
+  |   +-- timing-4h.md         # 4-hour half-day timing
+  |   +-- timing-7h.md         # 6-7 hour full-day timing
+  +-- articles/                # Supporting articles
+  |   +-- efficient-context-engineering.md
+  +-- install.sh               # Installer script (global or codebase mode)
+  +-- CLAUDE.md                # Project CLAUDE.md
+  +-- README.md                # Public README
+  ```
+
+  ## The 6 SDD Pillars
+
+  | # | Pillar | Core Idea | Key Skills |
+  |---|--------|-----------|------------|
+  | 1 | **Intelligent Context** | Teach AI your codebase DNA | `claude-md-guidelines`, `skill-routing-decisions`, `skill-navigator-pattern`, `context-engineering-audit` |
+  | 2 | **Strategic Delegation** | Right model, right task (Haiku/Sonnet/Opus) | Covered in `sdd-context` |
+  | 3 | **Trust But Verify** | Productive paranoia — catch hallucinations | `fear-driven-development`, `verification-patterns`, `tdd-workflow`, `regression-prevention`, `proactive-bug-hunting` |
+  | 4 | **Directed Synthesis** | Human stays the conductor | `directed-synthesis` |
+  | 5 | **Process Discipline** | Guardrails that enable velocity | `github-workflow`, `tdd-workflow` |
+  | 6 | **Continuous Learning** | Every mistake becomes a skill | `context-engineering-audit`, `docs-organization` |
+
+  ## The 19 Skills (Complete Catalog)
+
+  ### Context Engineering (Pillar 1)
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `sdd-context` | The methodology itself — 6 pillars, origin story (lib-pcb), skill table, trigger phrases. THIS is the navigator entry point. |
+  | `claude-md-guidelines` | CLAUDE.md is a navigation hub (not a dump). Target sizes: under 200 lines for libraries, under 300 for workspaces. |
+  | `skill-routing-decisions` | Where skills belong: project `.claude/skills/` (codebase-specific), `~/.claude/skills/` (personal), `~/.claude/skills/common/` (all projects). |
+  | `skill-navigator-pattern` | When to create a navigator (at 10+ skills). How to structure it (by domain, not alphabetically). |
+  | `context-engineering-audit` | Health checks: CLAUDE.md line count, skill location correctness, navigator presence, stale skill detection. |
+
+  ### Verification & Quality (Pillar 3)
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `fear-driven-development` | The 6 fears (hallucinations, production bugs, bad shipping, cost spiral, losing control, silent failures) and the 6 systems to address each. Emotional and practical core of SDD. |
+  | `verification-patterns` | Testing pyramid (70% unit / 20% integration / 10% E2E). Six Pillars verification framework. Test naming conventions. Assertion best practices. |
+  | `tdd-workflow` | Red-Green-Refactor with AI assistance. When to use TDD vs test-after. |
+  | `regression-prevention` | 4-layer defense: tests + patterns + process + automation. How to prevent the same bug twice. |
+  | `proactive-bug-hunting` | 5-step process: recognize anomaly, search for pattern, review impact, fix root cause, document learning. |
+
+  ### AI Orchestration (Pillar 4)
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `directed-synthesis` | Human-directed AI workflow. Triangulate perspectives (Claude + NotebookLM + manual review). Generate multiple solutions, select the best. |
+
+  ### Process (Pillar 5)
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `github-workflow` | Commit format (`type: description`), branch naming, PR structure, safety rules (no force push, no skipping hooks). |
+
+  ### Communication & Documentation (Pillar 1)
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `tone-of-voice` | Professional Scandinavian tone. Humility over hype. Conservative claims. |
+  | `writing-patterns` | Executive summary first, then details, then verification. |
+  | `documentation-style` | JavaDoc conventions, ADRs, "document the why, not the what." |
+  | `docs-organization` | `current/` + `completed/` + `FUTURE-IDEAS.md` structure for managing active work. |
+
+  ### Engineering Patterns
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `change-tracking` | Audit trail architecture. History tables. Event sourcing light. |
+  | `smart-file-matching` | 3-strategy file resolution for ambiguous references (exact, fuzzy, search). |
+  | `java-record-breaking-changes` | Safe Java record migration when adding fields (backward compatibility). |
+
+  ### Domain Skill Extraction
+
+  | Skill | What It Teaches |
+  |-------|----------------|
+  | `sdd-domain-skill-extractor` | How to extract domain skills from existing codebases — patterns, naming, testing. |
+  | `sdd-skill-health-check` | Periodic skill audit: detect stale, duplicate, or overly broad skills. |
+
+  ## Workshop Flow
+
+  ### Install Process
+
+  `./install.sh` provides two modes:
+
+  1. **Global (a):** Skills to `~/.claude/skills/common/`, memory to `~/.sdd/memory/`
+     (active in ALL projects — recommended for workshop)
+  2. **Codebase (b):** Skills to `.claude/skills/`, memory to `.sdd/memory/`
+     (active only in this project — good for team sharing via git)
+
+  The installer:
+  - Copies all `.yaml` skills and directory-format skills
+  - Installs memory files (won't overwrite existing `workshop-learnings.md`)
+  - Optionally scaffolds the project (CLAUDE.md template, LEARNINGS.md, SKILL-TEMPLATE.yaml)
+  - Reports installed counts and next steps
+
+  ### Workshop Timing Formats
+
+  | Format | Duration | Coverage |
+  |--------|----------|---------|
+  | Keynote | 2.5 hours | Demo + CLAUDE.md exercise + first skill + Q&A |
+  | Half-day | 4 hours | Full tutorial (steps 01-04) + verification exercise |
+  | Full-day | 6-7 hours | Complete curriculum + navigator + methodology deep-dive |
+
+  ### The Three Critical Moments (Facilitator Guide)
+
+  1. **"It knows my project" (~60-90 min):** Claude follows a participant's CLAUDE.md
+     convention unprompted. Engineer by writing one specific convention, then triggering it.
+  2. **"My skill works" (~2-3h):** Acid test passes — new session + skill-covered task =
+     Claude follows the skill. Walk around catching vague skills early.
+  3. **"I caught a hallucination" (~3-4h, full-day only):** Verification test catches
+     plausible but wrong output. Use a demo project with naming conventions Claude gets wrong.
+
+  ### Tutorial Sequence (6 Steps)
+
+  1. `01-install.md` — Run install.sh, verify skills loaded
+  2. `02-claude-md.md` — Write project CLAUDE.md (the navigation hub)
+  3. `03-first-skill.md` — Write first domain skill (pattern extraction)
+  4. `04-daily-workflow.md` — Integrate SDD into daily development
+  5. `05-navigator.md` — Build skill navigator (when you hit 10+ skills)
+  6. `06-maintaining.md` — Skill hygiene: audit, update, promote, retire
+
+  ## How To: Common Tasks
+
+  ### Add a New Skill to the Distribution
+
+  1. Create `skills/my-new-skill.yaml` following the template:
+     ```yaml
+     name: my-new-skill
+     description: What this skill teaches
+     version: 1.0.0
+     created: 2026-03-09
+
+     instructions: |
+       # Skill Name
+
+       ## What This Covers
+       ...
+
+       ## Key Patterns
+       ...
+
+       ## Common Mistakes
+       ...
+
+     tags:
+       - relevant-tag
+       - pillar-number
+
+     metadata:
+       type: methodology-skill
+       distribution: sdd-workshop-boost
+       version: 1.0.0
+     ```
+  2. The installer automatically picks up `.yaml` files from `skills/`
+  3. Update `sdd-context.yaml` — add the skill to the appropriate pillar table
+  4. Update the tutorial if the skill changes the recommended workflow
+
+  ### Add a Directory-Format Skill
+
+  For skills that need multiple files (e.g., navigators):
+  1. Create `skills/my-navigator/SKILL.md` (required entry point)
+  2. Add supporting files in the same directory
+  3. The installer copies the entire directory via `cp -r`
+
+  ### Customize for Different Tech Stacks
+
+  The 19 skills are language-agnostic methodology skills. To customize:
+
+  **For Java teams:**
+  - `verification-patterns` examples already use Java/JUnit
+  - Add Java-specific testing patterns to workshop exercises
+  - `java-record-breaking-changes` is directly applicable
+
+  **For TypeScript/React teams:**
+  - Swap test examples to Jest/Vitest patterns
+  - Replace `github-workflow` commit format if team uses Conventional Commits
+  - Add TypeScript-specific `type` vs `interface` skill
+
+  **For Python teams:**
+  - Swap test examples to pytest patterns
+  - Add Python-specific virtual environment skill
+  - Adjust `documentation-style` for docstring conventions
+
+  **Key principle:** Don't modify the installed skills. Create additional project-level
+  skills in `.claude/skills/` that extend or override the methodology skills.
+
+  ### Prepare Participant Machines
+
+  Send prep email 3-5 days before:
+  1. Install Claude Code: `claude --version` to verify
+  2. Install Git: `git --version` to verify
+  3. Bring a real project (any language, any size)
+  4. Contact facilitator if installation fails
+
+  Day-of checklist:
+  - Test WiFi with Claude Code
+  - Clone sdd-workshop-boost
+  - Run `./install.sh` on facilitator machine
+  - Print reference cards
+
+  ## Common Participant Questions
+
+  **Q: "How is this different from just using Claude Code?"**
+  A: Claude Code is the tool. SDD is the method. Without skills, Claude guesses your conventions
+  every session. With skills, it follows them automatically. The difference is visible in the
+  first exercise when Claude follows a CLAUDE.md convention unprompted.
+
+  **Q: "Do skills work with other AI tools?"**
+  A: Skills are Claude Code YAML files. The methodology (6 pillars) applies to any AI tool.
+  The encoding mechanism is Claude Code specific, but the thinking transfers.
+
+  **Q: "How many skills should I have?"**
+  A: Typical mature project: 15-30 project-level skills + 10-20 global common skills.
+  lib-pcb (the origin project) grew to 85 skills in 11 days. Start with 3-5 and grow organically.
+
+  **Q: "Won't skills get stale?"**
+  A: Yes. That's Pillar 6 (Continuous Learning). Run quarterly audits with
+  `sdd-skill-health-check`. Delete stale skills. Update outdated ones. A stale skill is
+  worse than no skill — it teaches Claude wrong things.
+
+  **Q: "Can I share skills with my team?"**
+  A: Yes. Install in codebase mode (option b) — skills go to `.claude/skills/` which you
+  commit to git. Everyone on the team gets the same skills.
+
+  **Q: "What about proprietary/confidential code patterns?"**
+  A: Skills live locally. They are YAML files on your machine or in your repo.
+  Nothing is sent to Anthropic beyond what Claude Code already sends.
+  Use `.gitignore` for skills containing sensitive patterns if needed.
+
+  **Q: "How do I know if a skill is too vague?"**
+  A: The acid test: start a new Claude Code session, ask Claude to do the thing
+  your skill covers. If Claude follows the skill correctly, it's specific enough.
+  If Claude still guesses, the skill is too vague — add concrete examples.
+
+  ## Gotchas & Pitfalls
+
+  - **Don't overwrite workshop-learnings.md:** The installer skips this file if it exists.
+    Participants may have filled it in during a previous session.
+  - **Global vs codebase confusion:** Global skills in `~/.claude/skills/common/` are active
+    everywhere. Codebase skills in `.claude/skills/` are project-only. Participants sometimes
+    install in the wrong mode and wonder why skills don't appear in their project.
+  - **CLAUDE.md is NOT a skill:** It's a navigation hub. Skills are the detail. A common
+    mistake is dumping everything into CLAUDE.md (line 1: it's a navigation hub, not a knowledge base).
+  - **WiFi is the biggest risk:** 30 participants all installing Claude Code and running
+    AI-powered sessions. Test WiFi before the workshop. Have USB backup.
+  - **Vague skills waste time:** If a participant spends 30 minutes writing a vague skill,
+    it won't pass the acid test. Catch this early by walking around during the skill-writing exercise.
+  - **The 6 pillars are ordered by importance for workshops:** Start with Pillar 1 (Intelligent
+    Context) — it's the most immediately demonstrable. Save Pillar 3 (Trust But Verify)
+    for after lunch when participants have seen enough to appreciate verification.
+  - **Conservative claims only:** "10-30x typical" is the defensible claim. Don't say "320x"
+    in workshops. See `tone-of-voice` skill.
+
+  ## Related Resources
+
+  - **Workshop business:** `/home/totto/Documents/eXOReaction/products/workshop/`
+  - **Proof points:** `/home/totto/Documents/eXOReaction/PROOF-POINTS.md`
+  - **lib-pcb story:** `/src/exoreaction/lib-pcb/docs/feature-stories/building-together-ai-collaboration.md`
+  - **Facilitator guide:** `/src/exoreaction/sdd-workshop-boost/facilitator/FACILITATOR-GUIDE.md`

@@ -1,0 +1,524 @@
+name: documentation-quality-validation
+description: Systematic quality validation of documentation to verify accuracy, consistency, completeness, and business value before publication or use
+version: 1.0.0
+created: 2026-02-12
+tags: [documentation, quality-assurance, validation, metrics-verification, cross-references, completeness-check]
+
+instructions: |
+  # Documentation Quality Validation
+
+  **Purpose:** Systematically validate documentation accuracy, consistency, and completeness to ensure it's business-ready and error-free before publication or use.
+
+  **When to Use:** After completing major documentation work (workflow documentation, executive updates, strategic analysis, knowledge base updates)
+
+  ---
+
+  ## Core Principle
+
+  **Quality = Accurate + Consistent + Complete + Valuable**
+
+  Not just checking for typos—verifying:
+  1. **Accuracy:** Metrics match reality, technical claims are correct
+  2. **Consistency:** Same numbers throughout, terminology used correctly
+  3. **Completeness:** All promised content delivered, cross-references work
+  4. **Business Value:** Content is credible, compelling, immediately usable
+
+  ---
+
+  ## Validation Process (6 Steps)
+
+  ### Step 1: Metric Consistency Verification (15-20 min)
+
+  **Purpose:** Ensure all metrics appear consistently throughout documentation
+
+  **Method:**
+  ```bash
+  # Search for key metrics across all documentation
+  cd ~/Documents
+
+  # Count occurrences of each key metric
+  grep -r "197,831" [documentation-path] 2>/dev/null | wc -l
+  grep -r "99.8%" [documentation-path] 2>/dev/null | wc -l
+  grep -r "7,461 test" [documentation-path] 2>/dev/null | wc -l
+  ```
+
+  **Check for:**
+  - [ ] Same numbers used consistently (no variations like "7,461" vs "7461" vs "~7,500")
+  - [ ] Percentages match across documents (not "99.8%" in one place, "99%" in another)
+  - [ ] Dates are consistent (not "Feb 12" in one place, "February 12" in another)
+  - [ ] Timelines align (not "11 days" in one place, "2 weeks" in another)
+
+  **Red Flags:**
+  - Multiple versions of same metric
+  - Rounded vs precise numbers mixed
+  - Inconsistent date formats
+  - Conflicting timelines
+
+  ---
+
+  ### Step 2: Word/Line Count Verification (10-15 min)
+
+  **Purpose:** Ensure claimed word counts match actual counts
+
+  **Method:**
+  ```bash
+  # For single file
+  wc -w [file.md]
+
+  # For multiple files (workflow documentation)
+  find [workflow-path] -name "README.md" -exec wc -w {} \; | awk '{sum+=$1} END {print sum}'
+
+  # For entire directory
+  find [path] -name "*.md" -exec wc -w {} \; | awk '{sum+=$1} END {print sum}'
+  ```
+
+  **Common Issues:**
+  - **Confusing lines with words:** "10,600 lines" ≠ "10,600 words" (usually ~6 words/line)
+  - **Confusing characters with words:** 64,000 characters ≠ 64,000 words (usually ~5 chars/word)
+  - **Overestimation:** Claiming 2x-3x actual count (destroys credibility)
+
+  **Fix:**
+  - Count actual words: `wc -w *.md`
+  - Update all claims consistently
+  - Document both words AND lines if helpful: "~64,000 words (~10,600 lines)"
+
+  ---
+
+  ### Step 3: Technical Accuracy Check (20-30 min)
+
+  **Purpose:** Verify technical claims are correct
+
+  **For Software Projects:**
+  - [ ] LOC counts match actual codebase: `find . -name "*.java" | xargs wc -l`
+  - [ ] Test counts match actual tests: `grep -r "@Test" | wc -l` or check test framework output
+  - [ ] Pass rates match test results: Check CI/CD or local test runs
+  - [ ] Technology stack correct: Verify in package.json, pom.xml, etc.
+  - [ ] Version numbers correct: Check git tags, release notes
+
+  **For Business Claims:**
+  - [ ] Revenue numbers match contracts/proposals
+  - [ ] Dates match meeting calendars, email threads
+  - [ ] Percentages calculated correctly (e.g., "85% MAU" = active users / total users)
+  - [ ] Timeline claims verifiable (e.g., "11 days" = git log shows Jan 16-27)
+
+  **For Metrics/Statistics:**
+  - [ ] Formulas used correctly
+  - [ ] Comparisons valid (apples to apples)
+  - [ ] Context provided (e.g., "10-30x faster" includes "vs 10-18 months industry standard")
+  - [ ] Sources cited or verifiable
+
+  **Red Flags:**
+  - Round numbers without explanation ("exactly 100" is suspicious)
+  - Metrics that changed since initial claim
+  - Percentages that don't add up to 100%
+  - Timelines that conflict with git history or known dates
+
+  ---
+
+  ### Step 4: Terminology Consistency Check (10-15 min)
+
+  **Purpose:** Verify terminology used consistently and correctly
+
+  **Check:**
+  - [ ] Product names consistent (not "Quadim" in one place, "Quadim.ai" in another)
+  - [ ] Technical terms correct (e.g., "Skill-Driven Development" vs "AI-assisted" used intentionally)
+  - [ ] Acronyms defined on first use
+  - [ ] Company names consistent (eXOReaction vs exoreaction)
+  - [ ] Feature names match product (e.g., "Leadership Coach" not "Career Coach")
+
+  **Method:**
+  ```bash
+  # Check for key terminology
+  grep -r "Skill-Driven Development\|SDD" [path] --include="*.md" | wc -l
+  grep -r "Quadim\|Quadim.ai" [path] --include="*.md" -o | sort | uniq -c
+  ```
+
+  **Fix if needed:**
+  - Standardize terminology (choose one version, use consistently)
+  - Add glossary if complex terms used frequently
+  - Update related skills (e.g., company-context) if terminology changed
+
+  ---
+
+  ### Step 5: Completeness & Cross-Reference Check (15-20 min)
+
+  **Purpose:** Verify all promised content delivered and cross-references work
+
+  **File Existence Check:**
+  ```bash
+  # Verify all referenced files exist
+  for workflow in workflow1 workflow2 workflow3; do
+    if [ -f "$workflow/README.md" ]; then
+      echo "✓ $workflow"
+    else
+      echo "✗ $workflow MISSING"
+    fi
+  done
+  ```
+
+  **Cross-Reference Validation:**
+  - [ ] All links in documentation point to real files
+  - [ ] Archive indices reference all workflows
+  - [ ] Master indices exist and are comprehensive
+  - [ ] Discovery guide links work
+  - [ ] CLAUDE.md updated with new content
+
+  **Completeness Checklist:**
+  - [ ] All planned workflows documented (check original plan)
+  - [ ] All sections in template filled (no "TODO" or "[TBD]" remaining)
+  - [ ] All screenshots referenced (no orphaned screenshots)
+  - [ ] All metrics documented (business value section complete)
+  - [ ] All cross-references bidirectional (A→B and B→A)
+
+  **Method:**
+  ```bash
+  # Find broken internal links (simple check)
+  grep -r "\](\.\./" [path] --include="*.md" | grep -o "](.*)" | sed 's/[()]//g' | while read link; do
+    # Manual verification or scripted check
+    echo "Check: $link"
+  done
+
+  # Find TODOs
+  grep -r "TODO\|TBD\|FIXME" [path] --include="*.md"
+  ```
+
+  ---
+
+  ### Step 6: Business Value Verification (15-20 min)
+
+  **Purpose:** Verify documentation is credible, compelling, and immediately usable
+
+  **Credibility Check:**
+  - [ ] Metrics are specific (not vague: "high engagement" → "85% MAU")
+  - [ ] Claims are conservative (not exaggerated: "10-30x typical" not "320x always")
+  - [ ] Comparisons provide context ("11 days vs 10-18 months industry standard")
+  - [ ] Evidence provided for bold claims (git commits, test results, screenshots)
+
+  **Compelling Check:**
+  - [ ] Business value clear in first paragraph
+  - [ ] User personas relatable (not generic)
+  - [ ] Use cases concrete (specific workflows, not abstract descriptions)
+  - [ ] Metrics show outcomes (not just activity: "85% MAU" and "68% onboarding completion")
+
+  **Usability Check:**
+  - [ ] Sales can use for demos (clear value propositions)
+  - [ ] Marketing can use for content (compelling stories)
+  - [ ] Recruiting can use for credibility (technical excellence demonstrated)
+  - [ ] Workshop can use for teaching (concrete examples)
+
+  **Scannable Check:**
+  - [ ] CEO can skim in 2 min (clear headers, bullets, bold)
+  - [ ] Technical lead can read deeply in 10 min (details available)
+  - [ ] Investor can get ROI in 5 min (metrics prominent)
+
+  ---
+
+  ## Common Issues & Fixes
+
+  ### Issue 1: Word Count Overestimation
+
+  **Symptom:** Documentation claims "131,000 words" but actual is "64,000 words"
+
+  **Root Cause:** Confusing lines or characters with words
+
+  **Fix:**
+  1. Count actual words: `find [path] -name "*.md" -exec wc -w {} \; | awk '{sum+=$1} END {print sum}'`
+  2. Update all claims consistently across files:
+     - Workflow archive indices
+     - Discovery guide
+     - CLAUDE.md
+     - Executive updates
+  3. Document both metrics if helpful: "~64,000 words (~10,600 lines)"
+
+  **Prevention:** Always use `wc -w` for word counts, not line counts or character counts
+
+  ---
+
+  ### Issue 2: Metric Drift
+
+  **Symptom:** "99.8%" in one file, "99%" in another, "high pass rate" in third
+
+  **Root Cause:** Copy-paste from different versions, rounding inconsistently
+
+  **Fix:**
+  1. Identify canonical source (e.g., test output, git commit)
+  2. Search and replace to standardize: `grep -r "99%" [path] --include="*.md"`
+  3. Verify count matches expectations: Should appear in all workflow docs
+
+  **Prevention:** Document exact metric in one place, reference elsewhere consistently
+
+  ---
+
+  ### Issue 3: Broken Cross-References
+
+  **Symptom:** Link points to `../old-path/file.md` but file moved to `../new-path/file.md`
+
+  **Root Cause:** File reorganization without updating links
+
+  **Fix:**
+  1. Find broken links: `grep -r "old-path" [path] --include="*.md"`
+  2. Update all references to new path
+  3. Verify with file existence check
+
+  **Prevention:** Use relative paths consistently, update cross-references when moving files
+
+  ---
+
+  ### Issue 4: Incomplete Archive Index
+
+  **Symptom:** Created 8 workflows but archive index only lists 7
+
+  **Root Cause:** Forgot to update index after creating last workflow
+
+  **Fix:**
+  1. List all workflow directories
+  2. Compare to archive index entries
+  3. Add missing workflows to index
+
+  **Prevention:** Update archive index immediately after creating each workflow, not at end
+
+  ---
+
+  ## Validation Checklist Template
+
+  ```markdown
+  # Documentation Quality Validation Report
+
+  **Date:** YYYY-MM-DD
+  **Scope:** [What documentation was validated]
+  **Validator:** [Name]
+
+  ---
+
+  ## Step 1: Metric Consistency ✅ / ⚠️ / ❌
+
+  **Key Metrics Checked:**
+  - [Metric 1]: Appears [N] times - ✅ Consistent
+  - [Metric 2]: Appears [N] times - ✅ Consistent
+  - [Metric 3]: Appears [N] times - ⚠️ Found variations (fixed)
+
+  **Issues Found:** [Describe any inconsistencies found and fixed]
+
+  ---
+
+  ## Step 2: Word/Line Count Verification ✅ / ⚠️ / ❌
+
+  **Claimed vs Actual:**
+  - Claimed: [N] words
+  - Actual: [N] words
+  - Variance: [Percentage]
+  - Status: ✅ Accurate / ⚠️ Corrected from [old claim]
+
+  **Issues Found:** [Describe any discrepancies and corrections made]
+
+  ---
+
+  ## Step 3: Technical Accuracy ✅ / ⚠️ / ❌
+
+  **Verified:**
+  - [ ] LOC counts match codebase
+  - [ ] Test counts match test framework
+  - [ ] Pass rates match test results
+  - [ ] Revenue numbers match contracts
+  - [ ] Dates match calendars/git history
+
+  **Issues Found:** [None / List issues and fixes]
+
+  ---
+
+  ## Step 4: Terminology Consistency ✅ / ⚠️ / ❌
+
+  **Checked:**
+  - [ ] Product names consistent
+  - [ ] Technical terms correct
+  - [ ] Acronyms defined
+  - [ ] Company names consistent
+
+  **Issues Found:** [None / List terminology inconsistencies fixed]
+
+  ---
+
+  ## Step 5: Completeness & Cross-References ✅ / ⚠️ / ❌
+
+  **File Existence:**
+  - All [N] workflow READMEs: ✅ Present
+  - All [N] archive indices: ✅ Present
+  - Discovery guide: ✅ Present
+
+  **Cross-References:**
+  - [ ] All internal links work
+  - [ ] Archive indices reference all workflows
+  - [ ] Discovery guide links work
+  - [ ] CLAUDE.md updated
+
+  **Issues Found:** [None / List broken links or missing files fixed]
+
+  ---
+
+  ## Step 6: Business Value Verification ✅ / ⚠️ / ❌
+
+  **Credibility:**
+  - [ ] Metrics specific and verifiable
+  - [ ] Claims conservative and proven
+  - [ ] Comparisons provide context
+  - [ ] Evidence provided for bold claims
+
+  **Usability:**
+  - [ ] Sales-ready (clear value propositions)
+  - [ ] Marketing-ready (compelling stories)
+  - [ ] Recruiting-ready (technical excellence shown)
+  - [ ] Workshop-ready (concrete examples)
+
+  **Issues Found:** [None / List credibility or usability issues addressed]
+
+  ---
+
+  ## Summary
+
+  **Overall Status:** ✅ PASSED / ⚠️ PASSED WITH CORRECTIONS / ❌ FAILED
+
+  **Issues Found:** [Total count]
+  **Issues Fixed:** [Total count]
+  **Remaining Issues:** [Total count, list if any]
+
+  **Recommendation:**
+  - ✅ Ready for publication/use
+  - ⚠️ Ready after minor corrections (list)
+  - ❌ Requires major revision before use
+
+  ---
+
+  **Validated By:** [Name]
+  **Date:** YYYY-MM-DD
+  **Next Validation:** [When to revalidate if documentation changes]
+  ```
+
+  ---
+
+  ## Real-World Example
+
+  ### Validation: Workflow Documentation (Feb 12, 2026)
+
+  **Scope:** 9 workflows (~64K words claimed), 2 archive indices, 1 discovery guide
+
+  **Step 1: Metric Consistency ✅**
+  - "197,831 lines": 152 occurrences - Consistent
+  - "7,461 tests": 147 occurrences - Consistent
+  - "99.8%": 223 occurrences - Consistent
+  - "25-66x faster": 79 occurrences - Consistent
+
+  **Step 2: Word Count ⚠️ CORRECTED**
+  - **Claimed:** ~131,000 words total
+  - **Actual:** ~64,000 words total (Quadim: ~58,800, lib-pcb: ~5,000)
+  - **Issue:** 2x overestimation (confused lines with words)
+  - **Fixed:** Updated all files with accurate counts
+
+  **Files Corrected:**
+  - Quadim WORKFLOW-ARCHIVE-INDEX.md
+  - eXOReaction WORKFLOW-ARCHIVE-INDEX.md
+  - DOCUMENTATION-DISCOVERY-GUIDE.md
+  - CLAUDE.md
+
+  **Step 3: Technical Accuracy ✅**
+  - lib-pcb LOC: Verified against codebase
+  - Test counts: Verified against test framework output
+  - All metrics consistent with source data
+
+  **Step 4: Terminology Consistency ✅**
+  - SDD (Skill-Driven Development): Used correctly in eXOReaction context
+  - RAG Architecture: Documented correctly for Frøya AI agent
+  - Product names: Consistent throughout
+
+  **Step 5: Completeness ✅**
+  - All 8 Quadim workflows present
+  - lib-pcb workflow present
+  - Both archive indices created
+  - Discovery guide created
+  - CLAUDE.md updated
+  - All cross-references working
+
+  **Step 6: Business Value ✅**
+  - Metrics specific (85% MAU, 68% onboarding, 99.8% pass rate)
+  - Claims conservative (10-30x proven, not 320x model)
+  - Use cases concrete and credible
+  - Workshop-ready, sales-ready, recruiting-ready
+
+  **Result:** ✅ PASSED WITH CORRECTIONS (word counts fixed, all other aspects validated)
+
+  **Time Invested:** ~1.5 hours validation for ~64K words of documentation
+
+  ---
+
+  ## Integration with Other Skills
+
+  **Use after:**
+  - `comprehensive-workflow-documentation` - Validate workflows after creation
+  - `executive-report-generator` - Validate executive updates before sending
+  - `workflow-archive-indexing` - Validate indices for accuracy
+
+  **Use with:**
+  - `knowledge-infrastructure-management` - Quality gate for knowledge base updates
+  - `integrate-assets` - Verify assets properly integrated
+
+  **Typical Flow:**
+  1. Create documentation (comprehensive-workflow-documentation)
+  2. Create indices (workflow-archive-indexing)
+  3. **Validate quality** (this skill - documentation-quality-validation)
+  4. Publish/use with confidence
+
+  ---
+
+  ## When to Use This Skill
+
+  **Triggers:**
+  - Completed major documentation work (before publication)
+  - Preparing documentation for business use (sales, marketing, recruiting)
+  - Suspecting documentation drift (metrics out of sync)
+  - Before important presentation using documentation
+  - Quarterly quality audit of knowledge base
+
+  **Don't use for:**
+  - Work-in-progress drafts (wait until complete)
+  - Minor updates (1-2 paragraphs changed)
+  - Documentation that won't be used externally
+  - Personal notes or temporary files
+
+  ---
+
+  ## Success Criteria
+
+  Documentation validation is complete when:
+  1. ✅ All metrics consistent across all files
+  2. ✅ Word/line counts accurate (not overestimated)
+  3. ✅ Technical claims verified against source data
+  4. ✅ Terminology used consistently
+  5. ✅ All files exist, all cross-references work
+  6. ✅ Business value credible and compelling
+  7. ✅ Documentation ready for immediate business use
+
+  **Quality Gate:** No critical issues, all issues documented and fixed or waived
+
+related_skills:
+  - comprehensive-workflow-documentation
+  - workflow-archive-indexing
+  - executive-report-generator
+  - knowledge-infrastructure-management
+
+examples:
+  - trigger: "validate the workflow documentation quality"
+    description: "Run 6-step validation: metrics, word counts, accuracy, terminology, completeness, business value"
+
+  - trigger: "check if documentation is business-ready"
+    description: "Verify credibility, usability, and value propositions before publication"
+
+  - trigger: "I think our word counts are wrong, can you verify?"
+    description: "Count actual words and compare to claims, fix discrepancies"
+
+metadata:
+  author: Thor Henning Hetland (Totto)
+  company: eXOReaction
+  domain: Quality assurance, documentation, business enablement
+  status: Production-ready (battle-tested Feb 12, 2026 - 9 workflows validated)
+  time_investment: 1-2 hours for comprehensive validation (64K words)
+  prevents: Credibility damage from inaccurate claims, broken links, inconsistent metrics
+  ensures: Business-ready, error-free, professionally validated documentation
