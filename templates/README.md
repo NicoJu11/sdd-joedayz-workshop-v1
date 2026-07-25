@@ -8,8 +8,4 @@ Reusable templates for the Skill-Driven Development (SDD) Workshop Boost product
 - `LEARNINGS.md` -- Template for capturing workshop learnings
 - `skill-template.yaml` -- Template for creating Claude Code skills
 
-## Related
 
-- [../](../) -- SDD Workshop Boost product directory
-- [../articles/](../articles/) -- Related articles
-- [../../workshop/](../../workshop/) -- General workshop product

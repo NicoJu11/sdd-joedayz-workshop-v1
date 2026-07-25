@@ -24,3 +24,6 @@ Instala 19 skills de metodología de nivel producción en tu entorno de Claude C
 - `CLAUDE.md` — archivo de contexto del proyecto (rellena los huecos)
 - `LEARNINGS.md` — bitácora de aprendizaje continuo (Pilar 6)
 - `skill-template.yaml` — template mínimo de 3 secciones para tu primera skill de dominio
+
+**Bonus: skill KCP** (`starter-kcp`):
+- `starter-kcp.yaml` — Añade un manifiesto `knowledge.yaml` a tu proyecto para que cualquier IA lo navegue en 3 tool calls en lugar de 33
