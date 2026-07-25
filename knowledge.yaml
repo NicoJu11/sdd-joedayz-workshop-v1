@@ -1,0 +1,394 @@
+# knowledge.yaml — Knowledge Context Protocol manifest
+# Spec: https://cantara.github.io/knowledge-context-protocol/
+# Project: SDD Joedayz Workshop — Skill-Driven Development methodology distribution
+
+project: sdd-joedayz-workshop
+kcp_version: "0.5"
+version: 1.0.0
+updated: 2026-03-05
+
+units:
+
+  # ── Overview ────────────────────────────────────────────────────────────────
+
+  - id: overview
+    path: README.md
+    intent: "What is SDD JoeDayz Workshop, what does it install, and how do I use it?"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: workshop-day
+    path: WORKSHOP-DAY.es.md
+    intent: "Step-by-step hands-on tutorial for the workshop day — all 6 exercises with exact prompts and expected output"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  # ── Skills ──────────────────────────────────────────────────────────────────
+
+  - id: skills-directory
+    path: skills/
+    intent: "All 27 methodology skills — install these to ~/.claude/skills/common/ to enable SDD in every session"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: sdd-context-skill
+    path: skills/sdd-context.yaml
+    intent: "Master navigator skill — entry point to the full SDD methodology, routes to all other skills"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["what SDD skills do I have", "which pillar applies", "SDD methodology"]
+
+  - id: claude-md-guidelines-skill
+    path: skills/claude-md-guidelines.yaml
+    intent: "How to write a CLAUDE.md — structure, what to include, antipatterns, quality criteria"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["write CLAUDE.md", "improve CLAUDE.md", "what goes in CLAUDE.md"]
+
+  - id: verification-patterns-skill
+    path: skills/verification-patterns.yaml
+    intent: "Which verification patterns to use — round-trip testing, property-based, differential, reference implementation"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["how to verify", "catch AI hallucinations", "test AI output"]
+
+  - id: directed-synthesis-skill
+    path: skills/directed-synthesis.yaml
+    intent: "How to stay the conductor — ask for options not decisions, preserve expertise, multi-tool orchestration"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["directed synthesis", "AI conductor", "preserve expertise"]
+
+  - id: github-workflow-skill
+    path: skills/github-workflow.yaml
+    intent: "PR-only workflow — branch strategy, commit conventions, quality gates, CI pipeline"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["github workflow", "PR process", "process discipline"]
+
+  - id: tdd-workflow-skill
+    path: skills/tdd-workflow.yaml
+    intent: "Test-driven development workflow with AI — write tests first, verify AI output systematically"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["TDD", "test first", "write tests"]
+
+  - id: fear-driven-development-skill
+    path: skills/fear-driven-development.yaml
+    intent: "How to use productive fear as a quality signal — anticipate failures before they happen"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["fear-driven development", "what could go wrong", "FDD"]
+
+  - id: starter-kcp-skill
+    path: skills/starter-kcp.yaml
+    intent: "Add a knowledge.yaml to your project so any AI agent can navigate it in 3 tool calls instead of 33"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["add knowledge.yaml", "KCP", "knowledge context protocol"]
+
+  - id: skill-routing-decisions-skill
+    path: skills/skill-routing-decisions.yaml
+    intent: "When to use which skill — decision framework for routing tasks to the right SDD skill"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+
+  - id: context-engineering-audit-skill
+    path: skills/context-engineering-audit.yaml
+    intent: "Audit your context setup — CLAUDE.md quality, skill coverage, what's missing"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["audit my context", "context engineering audit", "am I following SDD"]
+
+  - id: autonomous-validation-preflight-skill
+    path: skills/autonomous-validation-preflight.yaml
+    intent: "Pre-flight validation before any automated workflow — check dependencies, credentials, disk space, API connectivity, estimate cost/time before starting"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["pre-flight check", "validate before running", "batch job preflight", "autonomous validation"]
+
+  - id: documentation-quality-validation-skill
+    path: skills/documentation-quality-validation.yaml
+    intent: "Validate documentation accuracy — metric consistency, technical accuracy, terminology, completeness, cross-references; keeps CLAUDE.md and skills trustworthy over time"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+    triggers: ["validate documentation", "check docs accuracy", "documentation quality", "docs drift"]
+
+  # ── Templates ───────────────────────────────────────────────────────────────
+
+  - id: templates-directory
+    path: templates/
+    intent: "Project scaffolding templates — CLAUDE.md, LEARNINGS.md, and skill-template.yaml"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: claude-md-template
+    path: templates/CLAUDE.md
+    intent: "Fill-in-the-blanks CLAUDE.md template — copy to your project root and complete each section"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: learnings-template
+    path: templates/LEARNINGS.md
+    intent: "LEARNINGS.md template — capture what you discover each session, loaded with CLAUDE.md"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: skill-template
+    path: templates/skill-template.yaml
+    intent: "Minimal 3-section skill template — context, instructions, verification — for writing your first domain skill"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  # ── Tutorial ────────────────────────────────────────────────────────────────
+
+  - id: tutorial-overview
+    path: tutorial/README.md
+    intent: "Tutorial structure and time estimates — 6 steps from fresh install to working SDD infrastructure"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: tutorial-install
+    path: tutorial/01-install.md
+    intent: "Step 1: Install and verify — Claude knows SDD after this step"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: tutorial-claude-md
+    path: tutorial/02-claude-md.md
+    intent: "Step 2: Create your CLAUDE.md — Claude follows your conventions after this step"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: tutorial-first-skill
+    path: tutorial/03-first-skill.md
+    intent: "Step 3: Write your first domain skill — one working skill that passes the acid test"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: tutorial-daily-workflow
+    path: tutorial/04-daily-workflow.md
+    intent: "Step 4: Daily SDD workflow — feature + refactor + review using all 6 pillars"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: tutorial-navigator
+    path: tutorial/05-navigator.md
+    intent: "Step 5: Build a skill navigator — when and how to create a navigator for 10+ skills"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: tutorial-maintaining
+    path: tutorial/06-maintaining.md
+    intent: "Step 6: Maintain the infrastructure — quarterly audit plan to keep skills alive"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  # ── Articles ─────────────────────────────────────────────────────────────────
+
+  - id: sdd-method-deep-dive
+    path: articles/sdd-method-deep-dive.md
+    intent: "Comprehensive deep-dive on all 6 SDD pillars — written for NotebookLM slides, also readable as a standalone briefing"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: kcp-origin-story
+    path: articles/kcp-origin-story.md
+    intent: "How KCP, kcp-commands, kcp-memory, and the MCP bridges came to be — the 33-tool-call origin story"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: skill-navigation-guide
+    path: articles/skill-navigation-guide.md
+    intent: "How the three-layer skill architecture works — routing decisions, the navigator pattern, skill lifecycle, and common failure modes"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: efficient-context-engineering
+    path: articles/efficient-context-engineering.md
+    intent: "Why context engineering works, what goes where, common antipatterns, advanced patterns — read when hitting scaling challenges around 10 skills"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: pillar-1-article
+    path: articles/PILLAR-1-INTELLIGENT-CONTEXT.md
+    intent: "Deep-dive on Pillar 1: Intelligent Context — CLAUDE.md structure, skill architecture, what makes context compound"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: pillar-2-article
+    path: articles/PILLAR-2-STRATEGIC-DELEGATION.md
+    intent: "Deep-dive on Pillar 2: Strategic Delegation — model tiers, the template pattern, 80% Haiku distribution"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: pillar-3-article
+    path: articles/PILLAR-3-TRUST-BUT-VERIFY.md
+    intent: "Deep-dive on Pillar 3: Trust But Verify — round-trip testing, property-based testing, verification psychology"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: pillar-4-article
+    path: articles/PILLAR-4-DIRECTED-SYNTHESIS.md
+    intent: "Deep-dive on Pillar 4: Directed Synthesis — staying the conductor, question patterns that preserve expertise"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: pillar-5-article
+    path: articles/PILLAR-5-PROCESS-DISCIPLINE.md
+    intent: "Deep-dive on Pillar 5: Process Discipline — PR-only workflow, quality gates, guardrails that enable velocity"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  - id: pillar-6-article
+    path: articles/PILLAR-6-CONTINUOUS-LEARNING.md
+    intent: "Deep-dive on Pillar 6: Continuous Learning — LEARNINGS.md, the compound effect, team network effects"
+    scope: global
+    audience: [human, agent]
+    validated: 2026-03-05
+
+  # ── Facilitator ──────────────────────────────────────────────────────────────
+
+  - id: facilitator-guide
+    path: facilitator/FACILITATOR-GUIDE.md
+    intent: "Full facilitator guide — how to run the workshop, segment by segment, with recovery playbooks"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: demo-script
+    path: facilitator/demo-script.md
+    intent: "Demo script — exact before/after demo sequence for the opening session"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: common-failures
+    path: facilitator/common-failures.md
+    intent: "Common failures and recovery — what goes wrong in workshops and how to handle it"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: timing-7h
+    path: facilitator/timing-7h.md
+    intent: "7-hour workshop timing sheet — exact segment durations and transition cues"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: timing-4h
+    path: facilitator/timing-4h.md
+    intent: "4-hour workshop timing sheet — compressed format for half-day delivery"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  - id: timing-2h30
+    path: facilitator/timing-2h30.md
+    intent: "2.5-hour workshop timing sheet — keynote/intro format"
+    scope: global
+    audience: [human]
+    validated: 2026-03-05
+
+  # ── Memory ───────────────────────────────────────────────────────────────────
+
+  - id: memory-routing
+    path: memory/MEMORY.md
+    intent: "Memory navigator — routes to topic files, session start protocol for SDD projects"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+
+  - id: memory-pillars
+    path: memory/pillars.md
+    intent: "Pillar reference in memory format — quick lookup for all 6 pillars with triggers and key points"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+
+  - id: memory-domain-skills-guide
+    path: memory/domain-skills-guide.md
+    intent: "How to write domain skills — patterns, antipatterns, and examples from production codebases"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+
+  - id: memory-workshop-learnings
+    path: memory/workshop-learnings.md
+    intent: "Lessons learned from running SDD workshops — what works, what doesn't, edge cases"
+    scope: global
+    audience: [agent]
+    validated: 2026-03-05
+
+relationships:
+  - from: sdd-context-skill
+    to: skill-routing-decisions-skill
+    type: depends_on
+
+  - from: tutorial-first-skill
+    to: claude-md-guidelines-skill
+    type: depends_on
+
+  - from: tutorial-first-skill
+    to: skill-template
+    type: depends_on
+
+  - from: tutorial-daily-workflow
+    to: verification-patterns-skill
+    type: depends_on
+
+  - from: tutorial-daily-workflow
+    to: github-workflow-skill
+    type: depends_on
+
+  - from: tutorial-navigator
+    to: skills-directory
+    type: depends_on
+
+  - from: kcp-origin-story
+    to: starter-kcp-skill
+    type: depends_on
+
+  - from: sdd-method-deep-dive
+    to: pillar-1-article
+    type: depends_on
+
+  - from: workshop-day
+    to: tutorial-overview
+    type: depends_on
