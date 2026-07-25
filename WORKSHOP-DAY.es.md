@@ -5,10 +5,6 @@
 **Stack:** Agnóstico de lenguaje (ejemplos en Java/Spring Boot y TypeScript/React)
 
 
-> **Idioma:** Traducción de [`WORKSHOP-DAY.md`](./WORKSHOP-DAY.md) — **Ejercicios 1–3** (los esenciales para la charla / día 1).  
-> Ejercicios 4–6 → ver el original en inglés: [`WORKSHOP-DAY.md`](./WORKSHOP-DAY.md#exercise-4-trust-but-verify--the-template-pattern).  
-> Los prompts a Claude se mantienen en inglés (mejor resultados técnicos).
-
 ---
 
 ## Por qué SDD (y no solo prompting)
