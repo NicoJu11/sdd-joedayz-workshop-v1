@@ -1,60 +1,62 @@
-# Skill-Driven Development: Tutorial hands-on
-
-**Metodología:** Skill-Driven Development (SDD)  
-**Tiempo:** 6–8 horas (ritmo workshop) o a tu ritmo  
-**Stack:** Agnóstico de lenguaje (ejemplos en Java/Spring Boot y TypeScript/React)
+# Skill-Driven Development: A Hands-On Tutorial
 
 
----
 
-## Por qué SDD (y no solo prompting)
-
-La mayoría de los desarrolladores usan la IA como un buscador: hacen una pregunta, reciben una respuesta, siguen adelante. Cada sesión empieza de cero. La IA no conoce tu codebase, las convenciones de tu equipo, ni los errores que cometiste la semana pasada.
-
-Skill-Driven Development trata a la IA como un **sistema**, no como una herramienta. Construyes una librería de skills reutilizables — cada una codifica conocimiento de dominio, instrucciones y criterios de verificación. Cada sesión arranca con esa librería cargada. Cada error que corriges mejora la librería. La IA se vuelve mejor en tu codebase cada día que la usas.
-
-El efecto compuesto es real. En 11 días, un solo desarrollador construyó una librería Java de 197.831 líneas usando SDD — lo que toma 10–18 meses de forma tradicional. La librería de skills creció a 75 entradas. Cada skill nueva hizo más rápida la siguiente tarea. Para el día 11, la IA operaba al nivel de un arquitecto senior que hubiera estado en el proyecto desde el principio.
-
-Más reciente: en un workshop de Item Consulting (marzo 2026), un participante entregó 15.500 líneas de código, 326 tests y 82% de cobertura en 2 días — partiendo de cero en un codebase desconocido. Misma metodología.
-
-Este tutorial te enseña a construir ese sistema sobre **tu** codebase.
+**Methodology:** Skill-Driven Development (SDD)
+**Time to complete:** 6–8 hours (workshop pace) or self-paced
+**Tech stack:** Language-agnostic (examples in Java/Spring Boot and TypeScript/React)
 
 ---
 
-## Prerrequisitos
+## Why SDD (and not just prompting)
 
-Antes de empezar, verifica:
+Most developers use AI like a search engine: ask a question, get an answer, move on. Each session starts from scratch. The AI doesn't know your codebase, your team's conventions, or the mistakes you made last week.
+
+Skill-Driven Development treats AI as a **system**, not a tool. You build a library of reusable skills — each one encoding domain knowledge, instructions, and verification criteria. Every session starts with that library loaded. Every mistake you fix improves the library. The AI gets better at your codebase every day you use it.
+
+The compound effect is real. In 11 days, a single developer built a 197,831-line Java library using SDD — what takes 10–18 months the traditional way. The skills library grew to 75 entries. Each new skill made the next task faster. By day 11, the AI was operating at the level of a senior architect who had been on the project from the beginning.
+
+More recently: at an Item Consulting workshop in March 2026, a participant shipped 15,500 lines of code, 326 tests, and 82% coverage in 2 days — starting from scratch on an unfamiliar codebase. Same methodology.
+
+This tutorial teaches you to build that system on your own codebase.
+
+---
+
+## Prerequisites
+
+Before starting, verify:
 
 ```bash
-claude --version          # debe imprimir el número de versión
-claude doctor             # debe mostrar checkmarks verdes
+claude --version          # should print version number
+claude doctor             # should show green checkmarks
 ```
 
-También necesitas:
-- **Un codebase** con al menos algo de código funcionando (idealmente un proyecto real que te importe)
-- **Git** (`git status` debe funcionar en el directorio del proyecto)
-- **Tu build tool** corriendo: `mvn test` o `npm test` o `gradle test` — algo debe pasar
+You also need:
+- **A codebase** with at least some working code (ideally a real project you care about)
+- **Git** (`git status` should work in your project directory)
+- **Your build tool** running: `mvn test` or `npm test` or `gradle test` — something should pass
 
-**¿No tienes codebase?** Usa el **[IDEA-BANK.md](./IDEA-BANK.md)** — escenarios de proyecto prediseñados con repos para clonar, CLAUDE.md semilla y un brief. Elige uno, clónalo y sigue desde el Ejercicio 1. Toma ~10 minutos montarlo.
+**Don't have a codebase?** 
 
-Si `claude doctor` falla, mira [la guía de setup](https://docs.anthropic.com/en/docs/claude-code) antes de continuar.
+
+If `claude doctor` fails, see [the setup guide](https://docs.anthropic.com/en/docs/claude-code) before continuing.
 
 ---
 
-## Ejercicio 1: Evaluación baseline
+## Exercise 1: Baseline Assessment
 
-Antes de mejorar nada, mide dónde estás. Eso crea tu punto de referencia — y a menudo saca a la luz cosas que no sabías que no sabías.
+Before you improve anything, measure where you are. This creates your reference point — and often surfaces things you didn't know you didn't know.
 
-### Qué ejecutar
+### What to run
 
-Abre Claude Code en el directorio de tu proyecto:
+Open Claude Code in your project directory:
 
 ```bash
 cd your-project
 claude
 ```
 
-Luego pregunta:
+Then ask:
 
 ```
 Analyse this codebase and give me:
@@ -67,7 +69,7 @@ Analyse this codebase and give me:
 Be specific. Use actual class names, file paths, and numbers where possible.
 ```
 
-### Cómo se ve un buen output
+### What good output looks like
 
 ```
 Architecture: Layered (controller → service → repository). Spring Boot 3.2.
@@ -90,25 +92,25 @@ Unusual deps: commons-lang 2.6 (ancient, should be commons-lang3) and
 guava 20.0 (current is 33.x).
 ```
 
-### Registra lo que encontraste
+### Record what you found
 
-Escribe tres oraciones resumiendo: cuál es la arquitectura, cuál es el riesgo más grande, y en qué te vas a enfocar hoy.
+Write three sentences summarising: what the architecture is, what the biggest risk is, and what you'll focus on today.
 
 ---
 
-## Ejercicio 2: Escribe tu CLAUDE.md
+## Exercise 2: Write Your CLAUDE.md
 
-`CLAUDE.md` es lo primero que Claude Code lee cuando lo abres en un proyecto. Es tu contexto persistente: convenciones, restricciones, conocimiento de dominio y acuerdos de trabajo. Cada sesión arranca con él. Lo escribes una vez y lo refinas con el tiempo.
+`CLAUDE.md` is the first thing Claude Code reads when you open it in a project. It's your persistent context: conventions, constraints, domain knowledge, and working agreements. Every session starts with it. You write it once and refine it over time.
 
-### Crear el archivo
+### Create the file
 
-En la raíz de tu proyecto:
+At the root of your project:
 
 ```bash
 touch CLAUDE.md
 ```
 
-Luego abre Claude Code y pregunta:
+Then open Claude Code and ask:
 
 ```
 Based on your analysis of this codebase, help me write a CLAUDE.md file.
@@ -119,14 +121,14 @@ team would need to know in the first hour.
 Format: markdown headers, be specific, use actual class and package names.
 ```
 
-### Revisar y editar el borrador
+### Review and edit the draft
 
-Claude generará un punto de partida. Tu trabajo es:
-1. Quitar todo lo que esté mal
-2. Añadir lo que se saltó (sobre todo reglas de negocio que no puede inferir del código)
-3. Hacer fuerte la sección de constraints — ahí es donde evitas que la IA haga tonterías
+Claude will generate a starting point. Your job is to:
+1. Remove anything that's wrong
+2. Add anything it missed (especially business rules it can't infer from code)
+3. Make the constraints section strong — this is where you prevent the AI from doing stupid things
 
-### Cómo se ve un buen CLAUDE.md
+### What a good CLAUDE.md looks like
 
 ```markdown
 # OrderService — Claude Development Guide
@@ -165,57 +167,67 @@ Layered: Controller → Service → Repository
 - Upgrading Spring Boot from 2.7 to 3.2 (in progress, blocking tests on auth module)
 ```
 
-### La sección más importante: Constraints
+### The most important section: Constraints
 
-La sección de constraints le enseña a Claude qué **NO** hacer. Lista cosas que ya salieron mal. Lista los no-negociables de tu equipo. La IA los va a seguir.
+The constraints section teaches Claude what NOT to do. List things that have gone wrong before. List your team's non-negotiables. The AI will follow them.
 
 ---
 
-## Ejercicio 3: Tus primeras tres skills
+## Exercise 3: Your First Three Skills
 
-Una skill es un archivo `.yaml` reutilizable que le dice a Claude cómo hacer una tarea específica en tu codebase. Las skills viven en `~/.claude/skills/`. Se cargan bajo demanda.
-
-Para empezar necesitas tres tipos:
-
-1. **Skill de arquitectura** — cómo está estructurado tu sistema (patrones, naming, capas)
-2. **Skill de dominio** — qué hace realmente tu dominio de negocio
-3. **Skill de QA** — cómo verificas que el código es correcto
-
-### Estructura de una skill
-
-Todas las skills tienen la misma forma:
-
-```yaml
-name: skill-name
-description: One sentence: what this skill enables
-version: 1.0.0
-tags: [relevant, tags]
-
-instructions: |
-  # [Skill Name]
-
-  ## Context
-  What the AI needs to know before starting
-
-  ## Steps
-  1. Step one
-  2. Step two
-  3. Step three
-
-  ## Verification
-  - How to confirm it worked
-  - What tests to run
-  - What to check manually
-```
-
-### Skill 1: Tu skill de arquitectura
-
-Archivo: `~/.claude/skills/[project-name]-architecture.yaml`
-
-Pídele a Claude que la redacte:
+A skill is a directory containing a `SKILL.md` file that tells the AI how to do a specific task in your codebase. Skills live in `~/.claude/skills/`. They're loaded on demand.
 
 ```
-Create a Claude Code skill file for our architecture.
+~/.claude/skills/
+├── my-project-architecture/
+│   └── SKILL.md
+├── order-domain/
+│   └── SKILL.md
+└── my-project-qa/
+    └── SKILL.md
+```
+
+You need three types to start:
+
+1. **Architecture skill** — how your system is structured (patterns, naming, layers)
+2. **Domain skill** — what your business domain actually does
+3. **QA skill** — how you verify that code is correct
+
+### Skill structure
+
+Every `SKILL.md` has the same shape:
+
+```markdown
+# [Skill Name]
+
+> description: One sentence: what this skill enables
+
+## Context
+What the AI needs to know before starting
+
+## Steps
+1. Step one
+2. Step two
+3. Step three
+
+## Verification
+- How to confirm it worked
+- What tests to run
+- What to check manually
+```
+
+### Skill 1: Your architecture skill
+
+```bash
+mkdir -p ~/.claude/skills/[project-name]-architecture
+```
+
+File: `~/.claude/skills/[project-name]-architecture/SKILL.md`
+
+Ask Claude to draft it:
+
+```
+Create a skill file at ~/.claude/skills/[project-name]-architecture/SKILL.md
 It should help any AI agent working on this codebase understand:
 - Layer structure and what goes where
 - Naming conventions
@@ -223,18 +235,22 @@ It should help any AI agent working on this codebase understand:
 - Common patterns used (factories, builders, events, etc.)
 - Anti-patterns we explicitly avoid
 
-Output a complete YAML skill file.
+Write the file directly to that path.
 ```
 
-Edita el output. Añade lo que se saltó. Sobre todo: gotchas que ya te mordieron.
+Edit the output. Add anything it missed. Especially: gotchas that bit you before.
 
-### Skill 2: Tu skill de dominio
+### Skill 2: Your domain skill
 
-Archivo: `~/.claude/skills/[domain-name]-domain.yaml`
+```bash
+mkdir -p ~/.claude/skills/[domain-name]-domain
+```
+
+File: `~/.claude/skills/[domain-name]-domain/SKILL.md`
 
 ```
-Create a Claude Code skill that captures our domain model.
-Include:
+Create a skill file at ~/.claude/skills/[domain-name]-domain/SKILL.md
+Capture our domain model. Include:
 - The main domain concepts and what they mean (use our actual terminology)
 - Key business rules (what's valid, what's not)
 - Important invariants — things that must always be true
@@ -242,51 +258,52 @@ Include:
 - Examples of correct domain usage
 
 This is our business language, not our code structure.
+Write the file directly to that path.
 ```
 
-Ejemplo de una skill de dominio fuerte:
+Example of a strong domain skill:
 
-```yaml
-name: order-domain
-description: Domain model and business rules for the order management system
-version: 1.0.0
-tags: [domain, business-rules, order]
+```markdown
+# Order Domain
 
-instructions: |
-  # Order Domain
+> description: Domain model and business rules for the order management system
 
-  ## Core Concepts
-  - **Order**: A request to purchase one or more products. Has a lifecycle:
-    DRAFT → CONFIRMED → PICKING → SHIPPED → DELIVERED (or CANCELLED at any stage)
-  - **LineItem**: A specific product + quantity within an order
-  - **Customer**: Has a credit limit. Orders can be blocked if credit exceeded.
-  - **Fulfilment**: The physical process of picking, packing, shipping
+## Core Concepts
+- **Order**: A request to purchase one or more products. Has a lifecycle:
+  DRAFT → CONFIRMED → PICKING → SHIPPED → DELIVERED (or CANCELLED at any stage)
+- **LineItem**: A specific product + quantity within an order
+- **Customer**: Has a credit limit. Orders can be blocked if credit exceeded.
+- **Fulfilment**: The physical process of picking, packing, shipping
 
-  ## Key Business Rules
-  - An order CANNOT be confirmed if any LineItem has zero quantity
-  - Customer credit check happens at CONFIRMATION, not at DRAFT creation
-  - SHIPPED orders cannot be cancelled — must go through returns process
-  - Prices are fixed at confirmation time, not order creation
-  - A customer can have max 5 CONFIRMED orders pending at once
+## Key Business Rules
+- An order CANNOT be confirmed if any LineItem has zero quantity
+- Customer credit check happens at CONFIRMATION, not at DRAFT creation
+- SHIPPED orders cannot be cancelled — must go through returns process
+- Prices are fixed at confirmation time, not order creation
+- A customer can have max 5 CONFIRMED orders pending at once
 
-  ## Invariants
-  - Order total = sum of (lineItem.price × lineItem.quantity)
-  - Order status only moves forward (no going back from CONFIRMED to DRAFT)
-  - Every order MUST have a customer — orphan orders are a data integrity error
+## Invariants
+- Order total = sum of (lineItem.price × lineItem.quantity)
+- Order status only moves forward (no going back from CONFIRMED to DRAFT)
+- Every order MUST have a customer — orphan orders are a data integrity error
 
-  ## Common Mistakes
-  - Confusing "order value" (at current prices) with "confirmed value" (at confirmation prices)
-  - Assuming cancellation is always possible — check status first
-  - Forgetting that credit check blocks confirmation, not creation
+## Common Mistakes
+- Confusing "order value" (at current prices) with "confirmed value" (at confirmation prices)
+- Assuming cancellation is always possible — check status first
+- Forgetting that credit check blocks confirmation, not creation
 ```
 
-### Skill 3: Tu primera skill de QA
+### Skill 3: Your first QA skill
 
-Archivo: `~/.claude/skills/[project-name]-qa.yaml`
+```bash
+mkdir -p ~/.claude/skills/[project-name]-qa
+```
+
+File: `~/.claude/skills/[project-name]-qa/SKILL.md`
 
 ```
-Create a Claude Code QA skill for this codebase. It should guide any agent
-doing test work to:
+Create a skill file at ~/.claude/skills/[project-name]-qa/SKILL.md
+It should guide any agent doing test work to:
 - Know what test types we use and when
 - Know our test naming convention
 - Know where test files live
@@ -294,11 +311,12 @@ doing test work to:
 - Know what counts as "done" from a quality perspective
 
 Include our actual Maven/Gradle/npm commands.
+Write the file directly to that path.
 ```
 
-### Usa tus skills nuevas
+### Use your new skills
 
-Pruébalas de inmediato:
+Test them immediately:
 
 ```
 Using the order-domain skill, add a new domain rule: customers with
@@ -306,22 +324,8 @@ SUSPENDED status cannot create new orders. Add the validation to
 OrderService and write tests for it.
 ```
 
-Observa cómo la IA aplica tus reglas de dominio y convenciones de naming automáticamente. Eso es la skill trabajando.
+Watch how the AI applies your domain rules and naming conventions automatically. That's the skill working.
 
 ---
 
-## Siguiente
 
-Con los Ejercicios 1–3 tienes: baseline, `CLAUDE.md` y 3 skills (arquitectura, dominio, QA). Eso es el núcleo de Pillar 1 y el arranque de Pillar 3.
-
-| Siguiente | Dónde |
-|-----------|--------|
-| Ex 4 — Patrón template (Sonnet diseña, Haiku ejecuta) | [`WORKSHOP-DAY.md`](./WORKSHOP-DAY.md#exercise-4-trust-but-verify--the-template-pattern) |
-| Ex 5 — Expandir suite de tests | mismo archivo |
-| Ex 6 — Skill QA review + LEARNINGS.md | mismo archivo |
-| Instalar el boost | [`README.es.md`](./README.es.md) |
-| Ensayar el demo | [`facilitator/demo-script.es.md`](./facilitator/demo-script.es.md) |
-
----
-
-*Metodología y materiales: Totto (eXOReaction AS). Presentación ES: Jose Diaz Diaz.*
