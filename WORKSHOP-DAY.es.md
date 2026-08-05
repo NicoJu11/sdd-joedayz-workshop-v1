@@ -328,4 +328,381 @@ Watch how the AI applies your domain rules and naming conventions automatically.
 
 ---
 
+## Exercise 4: Trust But Verify — The Template Pattern
+
+The most expensive thing you can do with AI is use your smartest (and costliest) model for repetitive work. The template pattern fixes this.
+
+**The pattern:**
+1. Use Sonnet (smart, creative) to design the first complete implementation of something
+2. Verify it manually — it becomes your template
+3. Use Haiku (fast, cheap) for all subsequent implementations following that template
+
+Cost difference: Sonnet vs Haiku tokens are roughly 20× cheaper. For repetitive work (50+ similar files), this matters.
+
+### Step 1: Create the template
+
+Pick something repetitive in your codebase. Good candidates:
+- REST endpoints (if you have many)
+- Domain validators (if you validate many fields)
+- Repository methods (CRUD patterns)
+- React components following a common pattern
+
+Ask Sonnet to build the first one perfectly:
+
+```
+Build a complete REST endpoint for updating a customer's shipping address.
+Include: controller, service, repository, DTOs, validation, error handling,
+unit tests, and integration tests. Follow all patterns from our architecture
+skill. This will become our template for future endpoints — make it exemplary.
+```
+
+Review it carefully. Fix anything wrong. This is your template.
+
+### Step 2: Extract a template skill
+
+Create a skill that describes the template pattern:
+
+```yaml
+name: rest-endpoint-template
+description: Template for adding REST endpoints — Haiku-compatible pattern
+version: 1.0.0
+tags: [api, template, backend]
+
+template:
+  controller: |
+    @RestController
+    @RequestMapping("/api/v1/[resource]")
+    @RequiredArgsConstructor
+    public class [Resource]Controller {
+        private final [Resource]Service service;
+
+        @PutMapping("/{id}")
+        public ResponseEntity<[Resource]Response> update(
+                @PathVariable Long id,
+                @Valid @RequestBody Update[Resource]Request request) {
+            return ResponseEntity.ok(service.update(id, request));
+        }
+    }
+
+  service: |
+    @Service
+    @RequiredArgsConstructor
+    @Transactional
+    public class [Resource]Service {
+        private final [Resource]Repository repository;
+
+        public [Resource]Response update(Long id, Update[Resource]Request request) {
+            [Resource] entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("[Resource] not found: " + id));
+            // apply updates
+            [Resource] saved = repository.save(entity);
+            return [Resource]Response.from(saved);
+        }
+    }
+
+instructions: |
+  # REST Endpoint Template Pattern
+
+  ## For Haiku: follow the template exactly
+  1. Copy the controller template, replace [Resource] with the actual entity name
+  2. Copy the service template, replace [Resource] with the actual entity name
+  3. Add validation annotations to request DTO (@NotNull, @Size, etc.)
+  4. Write 3 tests: happy path, not found case, validation failure case
+  5. Run mvn test — all tests must pass before considering done
+
+  ## Do not invent new patterns
+  Follow the template. If something doesn't fit, stop and ask.
+```
+
+### Step 3: Delegate repeating work to Haiku
+
+Now for every new endpoint, use the cheaper model:
+
+```
+Using the rest-endpoint-template skill, add a PUT /api/v1/orders/{id}/status
+endpoint that updates order status. Follow the template exactly.
+Use claude-haiku-4-5 for this task.
+```
+
+The Haiku model follows the template you established. You verify the output, not the thinking.
+
+---
+
+## Exercise 5: Test Suite Expansion with Haiku
+
+Your test suite is probably thinner than it should be. Every developer knows this. But writing tests is boring, so it doesn't happen.
+
+Haiku can expand your test suite 10× faster than you can write tests manually — and it's cheap enough that the cost is negligible.
+
+### Step 1: Find your coverage gaps
+
+```
+Run our test suite and identify the three classes or modules with the
+lowest test coverage. For each one, list: what scenarios are currently
+tested, and what scenarios are NOT tested (but should be).
+```
+
+### Step 2: Systematic expansion
+
+Pick one class. Ask for comprehensive test coverage:
+
+```
+For CustomerService.validateCreditLimit(), write a comprehensive test suite.
+Cover:
+- Customer below credit limit (should pass)
+- Customer exactly at credit limit (edge case)
+- Customer above credit limit (should fail)
+- Customer with no credit limit set (should pass — unlimited)
+- Suspended customer (should fail regardless of limit)
+- Null customer (should throw IllegalArgumentException)
+- Zero-value order (should pass regardless of limit)
+
+Use our test naming convention and AssertJ assertions. Run mvn test after
+each test to confirm they pass.
+```
+
+### Step 3: Round-trip testing
+
+For parsing or transformation code, round-trip tests are the most powerful:
+
+```
+For OrderSerializer, write round-trip tests that:
+1. Create an Order object with all fields populated
+2. Serialize it to JSON
+3. Deserialize the JSON back to an Order
+4. Assert the deserialized object equals the original
+
+Test with: complete order, order with null optional fields, order with
+empty line items, order with maximum line item count (100).
+```
+
+If serialization is correct, round-trips pass. If they fail, you found a real bug — guaranteed.
+
+### The Haiku pattern for test expansion
+
+For large-scale test generation (50+ test classes), use this prompt pattern:
+
+```
+I'm going to give you a list of methods that need tests. For each one,
+write 3–5 test cases following our verification-patterns skill.
+Write all tests, then I will run mvn test and report back any failures.
+
+Methods to test:
+- OrderRepository.findByCustomerAndStatus()
+- LineItemValidator.validate()
+- PriceCalculator.calculateWithDiscounts()
+```
+
+Let it generate everything. Run the tests. Fix failures. Move on.
+
+---
+
+## Exercise 6: Create Your QA Skill
+
+By now you've done enough with AI that you know what it gets wrong in your codebase. It makes specific mistakes, misses specific things, forgets specific rules.
+
+Encode all of that into a QA skill.
+
+### Reflect on what went wrong today
+
+Before writing the skill, ask yourself:
+- What did the AI generate that you had to fix?
+- What test did it write that was wrong?
+- What convention did it ignore?
+- What business rule did it not know about?
+
+### Write the QA skill
+
+File: `~/.claude/skills/[project-name]-qa-review.yaml`
+
+```yaml
+name: order-service-qa-review
+description: Quality gate for all AI-generated code in the order service
+version: 1.0.0
+tags: [qa, review, quality-gate]
+
+checklist:
+  architecture:
+    - No business logic in controllers (check: controller methods max 5 lines)
+    - Constructor injection only (no @Autowired on fields)
+    - Services annotated with @Transactional where DB writes happen
+    - DTOs are records (immutable), domain objects are classes (mutable)
+
+  business_rules:
+    - Credit limit check happens at CONFIRMATION, not creation
+    - Status transitions are validated (can't go backward)
+    - Price captured at confirmation time, not order creation time
+    - Suspended customers cannot create orders (not just credit-blocked)
+
+  testing:
+    - Every new method has at least 3 tests (happy path, error, edge case)
+    - Integration tests use Testcontainers (not H2 in-memory)
+    - Test names follow: methodName_condition_expectedBehaviour
+    - All tests pass before considering a task done (run mvn verify)
+
+  common_ai_mistakes_in_this_codebase:
+    - Forgetting to handle Optional.empty() from repositories (causes NPE)
+    - Using == instead of .equals() for String comparisons
+    - Forgetting @Valid on @RequestBody parameters (validation silently skipped)
+    - Adding logic to CustomerService instead of extracting to domain service
+
+instructions: |
+  # QA Review
+
+  Before marking any task as complete, work through this checklist.
+  For each item: verify, don't assume.
+
+  If anything fails:
+  1. Fix it
+  2. Re-run mvn verify
+  3. Only then mark done
+
+  When you find a new class of mistake not in this list, add it.
+```
+
+### The update trigger
+
+At the end of every session, run:
+
+```
+What mistakes did we fix today that aren't in our QA skill yet?
+Suggest additions to the checklist.
+```
+
+The QA skill grows. The AI makes that class of mistake less often. Over weeks, it becomes remarkably reliable on your codebase.
+
+---
+
+## Continuous Learning: LEARNINGS.md
+
+Create one more file at the root of your project:
+
+```bash
+touch LEARNINGS.md
+```
+
+Every time something surprising happens — a bug found, a pattern discovered, a constraint violated — add it:
+
+```markdown
+# LEARNINGS.md
+
+## 2026-03-05
+- **Discovery**: OrderRepository.findByCustomer() is O(n) — does not use the index
+  on customer_id. Fixed by adding @Query with explicit JOIN FETCH.
+  **Pattern**: Always check EXPLAIN ANALYZE on repository queries that return lists.
+
+- **AI mistake**: Claude generated a converter that lost timezone info when
+  converting OffsetDateTime to LocalDateTime. Always use OffsetDateTime end-to-end.
+  **Added to QA checklist.**
+
+- **Skill updated**: order-service-qa-review.yaml — added timezone check.
+```
+
+Reference it in your CLAUDE.md:
+
+```markdown
+## Learning Log
+See LEARNINGS.md for codebase-specific discoveries and gotchas.
+Always check it before working on a new feature.
+```
+
+Now every session starts with the accumulated knowledge of every session before it.
+
+---
+
+## Bonus: Knowledge Context Protocol (KCP)
+
+Everything you built today — CLAUDE.md, skills, LEARNINGS.md — is knowledge context. KCP makes that context machine-navigable.
+
+A `knowledge.yaml` manifest at the project root tells any AI agent what exists and where to find it. Instead of making 30+ exploratory tool calls to understand your project, an agent with a manifest makes 3.
+
+Measured result: **33 tool calls → 3 tool calls** for a standard orientation question.
+
+### Create your knowledge.yaml
+
+```bash
+claude "Create a knowledge.yaml manifest for this project following the
+KCP specification. Include all skills, docs, the CLAUDE.md, and
+LEARNINGS.md. Group by type."
+```
+
+Or start from the 5-minute guide: https://wiki.totto.org/blog/2026/02/28/add-knowledgeyaml-to-your-project-in-five-minutes/
+
+The spec: https://cantara.github.io/knowledge-context-protocol/
+
+KCP v0.14 (March 2026) added query vocabulary — agents can now request skills filtered by audience, token budget, or capability. Already used across 110+ repos with 289 pre-built manifests for common CLI tools.
+
+---
+
+## What You've Built
+
+By the end of these exercises, you have:
+
+| Asset | What it does |
+|-------|-------------|
+| `CLAUDE.md` | Persistent project context — every session starts informed |
+| Architecture skill | AI knows your patterns and layer rules |
+| Domain skill | AI knows your business rules and terminology |
+| QA skill | AI knows what "done" looks like in your codebase |
+| QA review skill | AI self-checks before marking tasks complete |
+| `LEARNINGS.md` | Accumulating knowledge base — compounds daily |
+| `knowledge.yaml` | Navigation manifest — 10× faster agent orientation |
+
+This is the **knowledge layer**. The code you write is the output. The knowledge layer is what makes every future session faster, cheaper, and more accurate.
+
+---
+
+## The First 30 Days
+
+**Week 1:** Add 2–3 new skills. Update your QA skill after every session.
+
+**Week 2:** Use the template pattern on something repetitive. Measure time saved.
+
+**Week 3:** Review your skills — which ones have you used most? Make them better.
+
+**Week 4:** Share your top 3 skills with a colleague. Their AI now knows your team's patterns.
+
+The compounding effect becomes visible around week 3–4. Sessions that used to require back-and-forth corrections start landing correctly on the first try. That's the skill library paying off.
+
+---
+
+## Appendix: Skill File Locations
+
+Skills live in `~/.claude/skills/`. They're global — available in all projects.
+
+```
+~/.claude/skills/
+├── [project]-architecture.yaml     # project-specific
+├── [project]-domain.yaml           # project-specific
+├── [project]-qa.yaml               # project-specific
+├── [project]-qa-review.yaml        # project-specific
+└── common/                          # shared across all projects
+    ├── verification-patterns.yaml
+    ├── github-workflow.yaml
+    └── tdd-workflow.yaml
+```
+
+To use a skill: reference it by name in your prompt. You can also add a plain instruction to CLAUDE.md (e.g. "Always use the [project]-architecture skill when working on backend code") — Claude reads this at session start and applies it automatically.
+
+## Appendix: Quick Reference Commands
+
+```bash
+# Start a session in your project
+cd your-project && claude
+
+# Run all tests (adjust for your build tool)
+mvn verify          # Maven
+gradle test         # Gradle
+npm test            # Node
+
+# Check what skills exist
+ls ~/.claude/skills/
+
+# Add to CLAUDE.md to always use specific skills (plain instruction, not YAML):
+# "Always use the [project]-architecture and [project]-domain skills."
+```
+
+---
+
+
 
